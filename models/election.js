@@ -4,10 +4,10 @@ const { Schema } = mongoose;
 const electionSchema = new Schema(
   {
     title: { type: String, required: true, maxlength: 100 },
-    description: { type: String, maxlength: 500 },
+    description: { type: String, maxlength: 500,required:true },
     startdate: { type: Date, required: true },
     enddate: { type: Date, required: true },
-    // candidates: [{ type: Schema.Types.ObjectId, ref: "Candidate" }], 
+    candidates: [{ type: Schema.Types.ObjectId, ref: "Candidate" }], 
   },
   {
     timestamps: true, 

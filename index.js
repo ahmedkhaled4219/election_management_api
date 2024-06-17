@@ -2,11 +2,11 @@ import express from "express";
 import { dbConnection } from "./database/dbConnection.js";
 import dotenv from "dotenv";
 import routes from "./routes/index.js";
+dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
-
-dotenv.config();
+app.use(express.json());
+const port = 3000;
 
 app.use("/", routes);
 

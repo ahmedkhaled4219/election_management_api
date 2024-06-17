@@ -2,7 +2,7 @@ import Election from "../models/election.js ";
 
 // Create a new election
 export async function createElection(req, res) {
-  const { title, description, startdate, enddate } = req.body;
+  const { title, description, startdate, enddate, candidates } = req.body;
 
   try {
     const newElection = new Election({
@@ -10,6 +10,7 @@ export async function createElection(req, res) {
       description,
       startdate,
       enddate,
+      candidates,
     });
 
     await newElection.save();
@@ -22,7 +23,7 @@ export async function createElection(req, res) {
 // Get all elections
 export async function getElections(req, res) {
   try {
-    const elections = await find().populate("candidates");
+    const elections = await Election.find().populate("candidates");
     res.status(200).json(elections);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -32,7 +33,9 @@ export async function getElections(req, res) {
 // Get a single election
 export async function getElectionById(req, res) {
   try {
-    const election = await findById(req.params.id).populate("candidates");
+    const election = await Election.findById(req.params.id).populate(
+      "candidates"
+    );
     if (!election)
       return res.status(404).json({ message: "Election not found" });
     res.status(200).json(election);
@@ -46,7 +49,7 @@ export async function updateElection(req, res) {
   const { title, description, startdate, enddate, candidates } = req.body;
 
   try {
-    const updatedElection = await findByIdAndUpdate(
+    const updatedElection = await Election.findByIdAndUpdate(
       req.params.id,
       { title, description, startdate, enddate, candidates },
       { new: true, runValidators: true }
@@ -63,7 +66,7 @@ export async function updateElection(req, res) {
 // Delete an election
 export async function deleteElection(req, res) {
   try {
-    const election = await findByIdAndDelete(req.params.id);
+    const election = await Election.findByIdAndDelete(req.params.id);
     if (!election)
       return res.status(404).json({ message: "Election not found" });
     res.status(204).json();
