@@ -1,13 +1,15 @@
 import express from "express";
 import { dbConnection } from "./database/dbConnection.js";
 import dotenv from "dotenv";
-const app = express();
-const port = 3000;
+import routes from "./routes/index.js";
 
-app.get("/", (req, res) => {
-  res.send("Hello, World!");
-});
+const app = express();
+const port = process.env.PORT || 3000;
+
 dotenv.config();
+
+app.use("/", routes);
+
 dbConnection();
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

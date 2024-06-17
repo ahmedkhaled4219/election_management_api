@@ -7,7 +7,7 @@ const electionSchema = new Schema(
     description: { type: String, maxlength: 500 },
     startdate: { type: Date, required: true },
     enddate: { type: Date, required: true },
-    candidates: [{ type: Schema.Types.ObjectId, ref: "Candidate" }], 
+    // candidates: [{ type: Schema.Types.ObjectId, ref: "Candidate" }], 
   },
   {
     timestamps: true, 
