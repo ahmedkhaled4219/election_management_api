@@ -4,11 +4,11 @@ import jwt from 'jsonwebtoken'
 
 export const isAuthenticated = (req, res, next) => {
     let token = req.header('token')
-    jwt.verify(token, process.env.JWT_KEY , function (error, decoded) {
+    jwt.verify(token, process.env.JWT_KEY , function (err, decoded) {
         if (err) {
-            res.json({ error })
+            res.json({ err })
         } else {
-            req = decoded
+            req.citizen = decoded
             next()
         }
     });
