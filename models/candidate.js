@@ -4,7 +4,6 @@ const candidateSchema = new mongoose.Schema({
     citizenId: {
         type: Schema.Types.ObjectId,
         ref: 'Citizen',
-        required: true
     },
     party: {
         type: String,
