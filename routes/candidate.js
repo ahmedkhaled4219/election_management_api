@@ -7,6 +7,8 @@ import { isAuthenticated } from "../middlewares/authentication.js";
 const candidateRouter=express.Router();
 
 candidateRouter.post('/createCandidate',isAuthenticated,candidateController.createCandidate);
+candidateRouter.get('/getAllCandidates',candidateController.showAllCandidates);
+candidateRouter.get('/showSpecificCandidate/:id',candidateController.showAllCandidates);
 
 
 export default candidateRouter;

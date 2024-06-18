@@ -15,7 +15,16 @@ const createCandidate = catchAsyncErr(async (req, res) => {
 
     res.status(201).json({ message: "You are Candidate now ", candidate: newCandidate });
 });
+const showSpecificCandidate=catchAsyncErr(async(req,res)=>{
+    const {candidateId}=req.params;
+    const candidate=await Candidate.findById({_id:candidateId})
+    res.status(200).json({message:"candidate showd successfully",candidate})
+})
+
+const showAllCandidates=catchAsyncErr(async(req,res)=>{
+    const candidates=await Candidate.find()
+    res.status(200).json({message:"All candidates showd successfully",candidates})
+})
 
 
-
-export { createCandidate};
+export { createCandidate,showAllCandidates,showSpecificCandidate};
