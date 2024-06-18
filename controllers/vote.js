@@ -1,4 +1,6 @@
 import Vote from "../models/vote.js";
+import Election from "../models/election.js";
+import Result from "../models/result.js";
 
 export const getVotes = async (req, res) => {
     try {
@@ -39,22 +41,36 @@ export const addVote = async (req, res) => {
         const newVote = new Vote({ electionId, citizenId, candidateId });
         await newVote.save();
 
+        // Increment total votes in the election
+        await Election.findByIdAndUpdate(electionId, { $inc: { totalVotes: 1 } });
+        const updatedElection = await Election.findById(electionId);
+        // Increment vote count for candidate in the election
+        const targetResult = await Result.findOne({ electionId, candidateId });
+        if (targetResult) {
+            const updatedVoteCount = targetResult.voteCount + 1;
+            const newPercentage = (updatedVoteCount / updatedElection.totalVotes) * 100;
+            await Result.updateOne({ electionId, candidateId }, { $inc: { voteCount: 1 }, $set: { percentage: newPercentage } });
+        } else {
+            const newResult = new Result({
+                electionId,
+                candidateId,
+                voteCount: 1,
+                percentage: ((1 / updatedElection.totalVotes) * 100) // Calculate the percentage for the first vote
+            });
+            console.log("total votes = ",updatedElection.totalVotes);
+            console.log("percentage = ",(1 / updatedElection.totalVotes) * 100);
+            await newResult.save();
+        }
+
+        // Update percentages for all candidates
+        const allResults = await Result.find({ electionId });
+        for (const result of allResults) {
+            const newPercentage = (result.voteCount / updatedElection.totalVotes) * 100;
+            await Result.updateOne({ _id: result._id }, { percentage: newPercentage });
+        }
+
         res.status(201).json({ message: 'Vote added successfully.' });
     } catch (error) {
         res.status(500).json({ message: 'Server error occurred while adding the vote.', error });
-    }
-}
-
-export const deleteVote = async (req, res) => {
-    try {
-        const targetVote = await Vote.findById(req.params.id);
-        if (!targetVote) {
-            return res.status(404).json({ message: 'The vote not found' });
-        }
-        
-        await Vote.findByIdAndDelete(req.params.id);
-        res.status(204).json({ message: 'The vote is deleted' });
-    } catch (error) {
-        res.status(500).json({ message: 'Server error occurred while removing the vote.', error });
     }
 }
