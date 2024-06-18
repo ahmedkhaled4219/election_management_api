@@ -9,6 +9,15 @@ app.use(express.json());
 const port = 3000;
 
 app.use("/", routes);
+app.use((error, req, res, next) => {
+  const statusCode = error.statusCode || 500;
+  const response = {
+      status: 'error',
+      message: error.message || 'Internal Server Error',
+  };
+
+  res.status(statusCode).json(response);
+});
 
 dbConnection();
 app.listen(port, () => {
