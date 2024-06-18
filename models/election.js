@@ -8,6 +8,10 @@ const electionSchema = new Schema(
     startdate: { type: Date, required: true },
     enddate: { type: Date, required: true },
     candidates: [{ type: Schema.Types.ObjectId, ref: "Candidate" }], 
+    totalVotes:{
+      type:Number,
+      default:0,
+    },
   },
   {
     timestamps: true, 
