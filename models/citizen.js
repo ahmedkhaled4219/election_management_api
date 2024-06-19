@@ -40,7 +40,7 @@ const citizenSchema = new mongoose.Schema({
     },
     emailConfirmation:{
         type:Boolean,
-        default:0
+        default:false
     }
 });
 
