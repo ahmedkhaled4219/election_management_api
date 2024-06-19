@@ -6,7 +6,9 @@ import {
 } from "../controllers/vote.js";
 const router = express.Router();
 
-router.post("/", addVote);
+import { checkValidVote } from "../middlewares/vote.js";
+
+router.post("/",checkValidVote, addVote);
 router.get("/", getVotes);
 router.get("/:id", getSpecificVote);
 

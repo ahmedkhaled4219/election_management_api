@@ -46,6 +46,10 @@ const citizenSchema = new mongoose.Schema({
         required: true,
         match: [/^\+20\d{10}$/, 'Please use a valid Egyptian phone number (+20 followed by 10 digits).']
     },
+    emailConfirmation:{
+        type:Boolean,
+        default:false
+    },
     birthDate: {
         type: Date,
         required: true
