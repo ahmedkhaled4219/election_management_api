@@ -2,7 +2,7 @@ import { Candidate } from "../models/candidate.js";
 import { catchAsyncErr } from "../utilities/catchError.js";
 
 const createCandidate = catchAsyncErr(async (req, res) => {
-    const {citizenId}=req.citizen.citizen._id;
+    const citizenId =req.citizen.citizen._id;
     const {party, brief, criminalRecord, logoName, logoImage } = req.body;
     const newCandidate = await Candidate.create({
         citizenId,

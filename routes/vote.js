@@ -1,4 +1,5 @@
 import express from "express";
+import { isAuthenticated } from "../middlewares/authentication.js";
 import {
   addVote,
   getVotes,
@@ -8,7 +9,7 @@ const router = express.Router();
 
 import { checkValidVote } from "../middlewares/vote.js";
 
-router.post("/",checkValidVote, addVote);
+router.post("/",isAuthenticated,checkValidVote, addVote);
 router.get("/", getVotes);
 router.get("/:id", getSpecificVote);
 
