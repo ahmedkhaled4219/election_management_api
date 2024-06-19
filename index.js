@@ -10,13 +10,21 @@ const port = 3000;
 
 app.use("/", routes);
 app.use((error, req, res, next) => {
-  const statusCode = error.statusCode || 500;
-  const response = {
-      status: 'error',
-      message: error.message || 'Internal Server Error',
-  };
+  let statusCode = error.statusCode || 500;
+  let message = error.message || 'Internal Server Error';
 
-  res.status(statusCode).json(response);
+  if (error.name === 'ValidationError') {
+    statusCode = 400;
+    message = Object.values(error.errors).map(err => err.message).join(', ');
+  }
+
+  if (error.code && error.code === 11000) {
+    statusCode = 400;
+    const field = Object.keys(error.keyValue);
+    message = `${field} already exists.`;
+  }
+
+  res.status(statusCode).json(message);
 });
 
 dbConnection();
