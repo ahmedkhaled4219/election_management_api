@@ -24,7 +24,7 @@ const citizenSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['voter', 'admin'],
+        enum: ['voter', 'admin','candidate'],
         required: true
     },
     password: {
@@ -66,6 +66,14 @@ const citizenSchema = new mongoose.Schema({
         type: String,
         enum: ['Male', 'Female'],
         required: true
+    },
+    otpkey: {
+        type: String,
+        default: null
+    },
+    otpExpiredDate: {
+        type: Date,
+        default: null
     }
 });
 

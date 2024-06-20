@@ -1,10 +1,12 @@
 import { Candidate } from "../models/candidate.js";
+import { Citizen } from "../models/citizen.js";
 import Election from "../models/election.js";
 import { catchAsyncErr } from "../utilities/catchError.js";
 
 const createCandidate = catchAsyncErr(async (req, res) => {
-    const {citizenId}=req.citizen.citizen._id;
-    const {party, brief, criminalRecord, logoName, logoImage } = req.body;
+    const citizenId = req.citizen.citizen._id;
+    const { party, brief, criminalRecord, logoName, logoImage ,electionId } = req.body;
+
     const newCandidate = await Candidate.create({
         citizenId,
         party,
@@ -12,9 +14,12 @@ const createCandidate = catchAsyncErr(async (req, res) => {
         criminalRecord,
         logoName,
         logoImage,
+        electionId
     });
 
-    res.status(201).json({ message: "You are Candidate now ", candidate: newCandidate });
+    await Citizen.findByIdAndUpdate(citizenId, { role: 'candidate' });
+
+    res.status(201).json({ message: "You are a candidate now", candidate: newCandidate });
 });
 
 export const applyCandidate = catchAsyncErr(async (req, res) => {
