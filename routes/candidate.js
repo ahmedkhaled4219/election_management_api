@@ -1,6 +1,7 @@
 import express from "express";
 import * as candidateController from "../controllers/candidate.js";
 import { isAuthenticated } from "../middlewares/authentication.js";
+import { allowedTo } from "../middlewares/authorization.js";
 
 
 
