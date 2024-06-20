@@ -30,7 +30,17 @@ const candidateSchema = new mongoose.Schema({
         type: String,
         enum: ['approved', 'pending'],
         default: 'pending'
-    }
+    },
+    electionId:{
+        type: Schema.Types.ObjectId,
+        ref: 'Election',
+        required: true 
+    },
+    requestedAt: {
+        type: Date,
+        default: Date.now
+    },
+    reviewedAt: Date,
 });
 
 export const Candidate = mongoose.model('Candidate', candidateSchema);
