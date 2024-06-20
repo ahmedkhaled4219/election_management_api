@@ -3,7 +3,6 @@ import { catchAsyncErr } from "../utilities/catchError.js";
 
 const createCandidate = catchAsyncErr(async (req, res) => {
     const citizenId=req.citizen.citizen._id;
-    console.log(citizenId);
     const {party, brief, criminalRecord, logoName, logoImage } = req.body;
     const newCandidate = await Candidate.create({
         citizenId,

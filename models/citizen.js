@@ -1,10 +1,18 @@
 import mongoose from 'mongoose';
+import { validateSSN, extractSSNInfo } from '../utilities/ssnutils.js';
 
 const citizenSchema = new mongoose.Schema({
     ssn: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        validate: {
+            validator: function(value) {
+                const { valid } = validateSSN(value);
+                return valid;
+            },
+            message: props => `Invalid SSN: ${props.value}`
+        }
     },
     firstName: {
         type: String,
@@ -41,7 +49,43 @@ const citizenSchema = new mongoose.Schema({
     emailConfirmation:{
         type:Boolean,
         default:false
+    },
+    birthDate: {
+        type: Date,
+        required: true
+    },
+    age: {
+        type: Number,
+        required: true
+    },
+    governorate: {
+        type: String,
+        required: true
+    },
+    gender: {
+        type: String,
+        enum: ['Male', 'Female'],
+        required: true
+    },
+    otpkey: {
+        type: String,
+        default: null
+    },
+    otpExpiredDate: {
+        type: Date,
+        default: null
     }
+});
+
+citizenSchema.pre('validate', function(next) {
+    if (this.ssn) {
+        const { birthDate, age, governorate, gender } = extractSSNInfo(this.ssn);
+        this.birthDate = birthDate;
+        this.age = age;
+        this.governorate = governorate;
+        this.gender = gender;
+    }
+    next();
 });
 
 export const Citizen = mongoose.model('Citizen', citizenSchema);
