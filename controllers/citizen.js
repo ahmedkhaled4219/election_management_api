@@ -1,13 +1,31 @@
+import { sendEmail } from "../emailing/confirmationOfEmail.js";
 import { Citizen } from "../models/citizen.js";
 import { catchAsyncErr } from "../utilities/catchError.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import {confirmEmail} from '../emailing/confirmationOfEmail.html.js'
+import { validateSSN, extractSSNInfo } from '../utilities/ssnutils.js';
 
 
 
 const signUp = catchAsyncErr(async (req, res) => {
     const { ssn, firstName, lastName, role, password, image, email, phoneNumber } = req.body;
+    
+    const validation = validateSSN(ssn);
+    if (!validation.valid) {
+        return res.status(400).json({ message: validation.message });
+    }
+
+    const { birthDate, age, governorate, gender } = extractSSNInfo(ssn);
+ 
+    const existingCitizen = await Citizen.findOne({ ssn });
+    if (existingCitizen) {
+        return res.status(400).json({ message: 'SSN already exists.' });
+    }
+   
+
     const hash=bcrypt.hashSync(password, Number(process.env.ROUND))
+    
     const newCitizen = await Citizen.create({
         ssn,
         firstName,
@@ -16,9 +34,15 @@ const signUp = catchAsyncErr(async (req, res) => {
         password:hash,
         image,
         email,
-        phoneNumber
+        phoneNumber,
+        birthDate,
+        age,
+        governorate,
+        gender
     });
-
+    var token = jwt.sign({ email }, process.env.JWT_KEY);
+    sendEmail({ email, html: confirmEmail(token) });
+    
     res.status(201).json({ message: "Inserted successfully", citizen: newCitizen });
 });
 const signin = catchAsyncErr(async (req, res) => {
@@ -33,4 +57,20 @@ const signin = catchAsyncErr(async (req, res) => {
     var role=citizen.role;
     res.json({ message: "login successfully", token,role });
   });
-export {signUp,signin};
+
+const confirmationOfEmail = catchAsyncErr(async (req, res) => {
+    let { token } = req.params;
+    jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+      if (!err) {
+        await Citizen.findOneAndUpdate(
+          { email: decoded.email },
+          { emailConfirmation: true }
+        );
+        res.json({ message: "account confirmed successfully" });
+      } else {
+        res.json(err);
+      }
+    });
+  });
+export {signUp,signin,confirmationOfEmail};
+

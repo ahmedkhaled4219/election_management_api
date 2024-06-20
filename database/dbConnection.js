@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
 
-
 function dbConnection() {
-    mongoose.set("strictQuery",true);
-    mongoose.connect(process.env.DB_CONN).then(()=>{
-        console.log("connection to mongo succeed :) ");
-    }).catch(
-        console.log("sorry an error heppen while you are tying to connect to mongo")
-    )
+    mongoose.set("strictQuery", true);
+    mongoose.connect(process.env.DB_CONN)
+        .then(() => {
+            console.log("Connection to Mongo succeeded :)");
+        })
+        .catch((error) => {
+            console.log("Sorry, an error happened while trying to connect to Mongo:", error);
+        });
 }
-export {dbConnection};
+
+export { dbConnection };
