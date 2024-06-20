@@ -4,7 +4,7 @@ import { catchAsyncErr } from "../utilities/catchError.js";
 
 const createCandidate = catchAsyncErr(async (req, res) => {
     const citizenId = req.citizen.citizen._id;
-    const { party, brief, criminalRecord, logoName, logoImage } = req.body;
+    const { party, brief, criminalRecord, logoName, logoImage ,electionId } = req.body;
 
     const newCandidate = await Candidate.create({
         citizenId,
@@ -13,6 +13,7 @@ const createCandidate = catchAsyncErr(async (req, res) => {
         criminalRecord,
         logoName,
         logoImage,
+        electionId
     });
 
     await Citizen.findByIdAndUpdate(citizenId, { role: 'candidate' });
