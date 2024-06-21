@@ -2,6 +2,7 @@ import { Candidate } from "../models/candidate.js";
 import { Citizen } from "../models/citizen.js";
 import Election from "../models/election.js";
 import { catchAsyncErr } from "../utilities/catchError.js";
+import { paginate } from "../utilities/pagination.js";
 
 const createCandidate = catchAsyncErr(async (req, res) => {
   const citizenId = req.citizen.citizen._id;
@@ -101,10 +102,12 @@ const showSpecificCandidate = catchAsyncErr(async (req, res) => {
 });
 
 const showAllCandidates = catchAsyncErr(async (req, res) => {
-  const candidates = await Candidate.find();
+    const { page, limit } = req.query;
+    const paginationResults = await paginate(Candidate, page, limit);
+
   res
     .status(200)
-    .json({ message: "All candidates showd successfully", candidates });
+    .json({ message: "All candidates showd successfully", paginationResults });
 });
 
 export { createCandidate, showAllCandidates, showSpecificCandidate };
