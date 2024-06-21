@@ -44,6 +44,7 @@ const citizenSchema = new mongoose.Schema({
     phoneNumber: {
         type: String,
         required: true,
+        unique: true,
         match: [/^\+20\d{10}$/, 'Please use a valid Egyptian phone number (+20 followed by 10 digits).']
     },
     emailConfirmation:{
@@ -72,6 +73,14 @@ const citizenSchema = new mongoose.Schema({
         default: null
     },
     otpExpiredDate: {
+        type: Date,
+        default: null
+    },
+    resetPasswordToken: {
+        type: String,
+        default: null
+    },
+    resetPasswordExpires: {
         type: Date,
         default: null
     },

@@ -8,6 +8,8 @@ const citizenRouter=express.Router();
 citizenRouter.post('/signup',citizenController.signUp);
 citizenRouter.post('/signin',citizenController.signin);
 citizenRouter.get("/confirmationOfEmail/:token",citizenController.confirmationOfEmail);
+citizenRouter.post('/forgot-password', citizenController.forgotPassword);
+citizenRouter.post('/reset-password', citizenController.resetPassword);
 citizenRouter.put('/status', citizenController.updateCitizenStatus);
   
 
