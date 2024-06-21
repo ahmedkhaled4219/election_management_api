@@ -74,7 +74,12 @@ const citizenSchema = new mongoose.Schema({
     otpExpiredDate: {
         type: Date,
         default: null
-    }
+    },
+    status: {
+        type: String,
+        enum: ['blocked', 'unblocked'],
+        default: 'unblocked'
+    },
 });
 
 citizenSchema.pre('validate', function(next) {

@@ -29,7 +29,12 @@ export const applyCandidate = catchAsyncErr(async (req, res) => {
   const { electionId, party, brief, criminalRecord, logoName, logoImage } =
     req.body;
   const citizenId = req.citizen.citizen._id;
-
+ 
+  const citizen = await Citizen.findById(citizenId);
+  if (citizen.status === 'blocked') {
+    return res.status(403).json({ message: 'You are blocked from applying as a candidate.' });
+  }
+  
   const election = await Election.findById(electionId);
   if (!election) {
     return res.status(404).json({ message: "Election not found." });
@@ -102,9 +107,11 @@ const showSpecificCandidate = catchAsyncErr(async (req, res) => {
 
 const showAllCandidates = catchAsyncErr(async (req, res) => {
   const candidates = await Candidate.find();
+  const count = await Candidate.countDocuments(); 
+
   res
     .status(200)
-    .json({ message: "All candidates showd successfully", candidates });
+    .json({ message: "All candidates showd successfully", candidates, count });
 });
 
 export { createCandidate, showAllCandidates, showSpecificCandidate };

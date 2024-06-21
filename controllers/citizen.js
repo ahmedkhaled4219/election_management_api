@@ -72,5 +72,20 @@ const confirmationOfEmail = catchAsyncErr(async (req, res) => {
       }
     });
   });
-export {signUp,signin,confirmationOfEmail};
+  const updateCitizenStatus = catchAsyncErr(async (req, res) => {
+    const { citizenId, status } = req.body;
+
+    if (!['blocked', 'unblocked'].includes(status)) {
+        return res.status(400).json({ message: 'Invalid status. Must be "blocked" or "unblocked".' });
+    }
+
+    const updatedCitizen = await Citizen.findByIdAndUpdate(citizenId, { status }, { new: true });
+
+    if (!updatedCitizen) {
+        return res.status(404).json({ message: 'Citizen not found.' });
+    }
+
+    res.status(200).json({ message: `Citizen has been ${status}.`, citizen: updatedCitizen });
+});
+export {signUp,signin,confirmationOfEmail,updateCitizenStatus};
 

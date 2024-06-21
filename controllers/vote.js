@@ -35,8 +35,11 @@ export const addVote = catchAsyncErr(async (req, res) => {
         // If a vote exists, return an error message
         return res.status(400).json({ message: 'You have already voted in this election.' });
     }
-    // check OTP
     const citizen = await Citizen.findOne({ email:email });
+    if (citizen.status === 'blocked') {
+        return res.status(403).json({ message: 'You are blocked from voting.' });
+    }
+    // check OTP
     if (!otp) {
         const generatedOTP = crypto.randomBytes(3).toString('hex'); 
         const otpExpiredDate = new Date(Date.now() + 10 * 60 * 1000);
