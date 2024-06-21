@@ -75,6 +75,14 @@ const citizenSchema = new mongoose.Schema({
     otpExpiredDate: {
         type: Date,
         default: null
+    },
+    resetPasswordToken: {
+        type: String,
+        default: null
+    },
+    resetPasswordExpires: {
+        type: Date,
+        default: null
     }
 });
 

@@ -4,7 +4,9 @@ import { catchAsyncErr } from "../utilities/catchError.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {confirmEmail} from '../emailing/confirmationOfEmail.html.js'
+import { sendForgetPasswordEmail } from "../emailing/forgetPasswordEmail.js";
 import { validateSSN, extractSSNInfo } from '../utilities/ssnutils.js';
+import crypto from 'crypto';
 
 
 
@@ -72,5 +74,67 @@ const confirmationOfEmail = catchAsyncErr(async (req, res) => {
       }
     });
   });
+
+
+  export const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const citizen = await Citizen.findOne({ email });
+        if (!citizen) {
+            return res.status(404).json({ message: 'citizen not found.' });
+        }
+
+        // Generate a reset token
+        const resetToken = crypto.randomBytes(20).toString('hex');
+        const resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000);
+        const localResetExpiredDate = new Date(resetPasswordExpires.getTime() - (resetPasswordExpires.getTimezoneOffset() * 60000));
+
+        // Save the token and expiration date to the citizen's record
+        citizen.resetPasswordToken = resetToken;
+        citizen.resetPasswordExpires = localResetExpiredDate;
+        await citizen.save();
+
+        // Send the reset token to the user's email
+        const resetUrl = `http://yourfrontend.com/reset-password?token=${resetToken}`;
+        await sendForgetPasswordEmail(email, 'Password Reset Request', `Please reset your password by clicking the following link: ${resetUrl}`);
+
+        res.status(200).json({ message: 'Password reset email sent.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error occurred while processing the password reset request.', error });
+    }
+};
+
+
+
+export const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+      const citizen = await Citizen.findOne({
+          resetPasswordToken: token,
+          resetPasswordExpires: { $gt: Date.now() }
+      });
+
+      if (!citizen) {
+          return res.status(400).json({ message: 'Invalid or expired token.' });
+      }
+
+      // Hash the new password and save it
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      citizen.password = hashedPassword;
+      citizen.resetPasswordToken = null;
+      citizen.resetPasswordExpires = null;
+      await citizen.save();
+
+      res.status(200).json({ message: 'Password reset successful.' });
+  } catch (error) {
+      res.status(500).json({ message: 'Server error occurred while resetting the password.', error });
+  }
+};
+
+
 export {signUp,signin,confirmationOfEmail};
 
