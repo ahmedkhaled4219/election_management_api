@@ -7,9 +7,9 @@ import { allowedTo } from "../middlewares/authorization.js";
 
 const candidateRouter=express.Router();
 
-candidateRouter.post('/createCandidate',isAuthenticated,candidateController.createCandidate);
-candidateRouter.get('/getAllCandidates',candidateController.showAllCandidates);
-candidateRouter.get('/showSpecificCandidate/:id',candidateController.showAllCandidates);
+// candidateRouter.post('/createCandidate',isAuthenticated,candidateController.createCandidate);
+candidateRouter.get('/:id',candidateController.showSpecificCandidate);
+candidateRouter.get('',candidateController.showAllCandidates);
 candidateRouter.post('/apply', isAuthenticated,candidateController.applyCandidate); 
 candidateRouter.post('/review',candidateController.reviewCandidate); 
 

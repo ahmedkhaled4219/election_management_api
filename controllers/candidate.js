@@ -96,7 +96,7 @@ export const reviewCandidate = catchAsyncErr(async (req, res) => {
 });
 
 const showSpecificCandidate = catchAsyncErr(async (req, res) => {
-  const { candidateId } = req.params;
+    const candidateId = req.params.id;
   const candidate = await Candidate.findById({ _id: candidateId });
   res.status(200).json({ message: "candidate showd successfully", candidate });
 });
