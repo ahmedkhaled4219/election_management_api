@@ -10,6 +10,7 @@ citizenRouter.post('/signin',citizenController.signin);
 citizenRouter.get("/confirmationOfEmail/:token",citizenController.confirmationOfEmail);
 citizenRouter.post('/forgot-password', citizenController.forgotPassword);
 citizenRouter.post('/reset-password', citizenController.resetPassword);
+citizenRouter.put('/status', citizenController.updateCitizenStatus);
   
 
 export default citizenRouter;

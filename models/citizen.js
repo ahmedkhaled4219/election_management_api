@@ -83,7 +83,12 @@ const citizenSchema = new mongoose.Schema({
     resetPasswordExpires: {
         type: Date,
         default: null
-    }
+    },
+    status: {
+        type: String,
+        enum: ['blocked', 'unblocked'],
+        default: 'unblocked'
+    },
 });
 
 citizenSchema.pre('validate', function(next) {
