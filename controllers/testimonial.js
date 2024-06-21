@@ -14,3 +14,14 @@ export const getAllTestimonials = catchAsyncErr(async (req, res) => {
     res.status(200).json({ message: "All testimonials retrieved successfully", paginationResults });
 });
 
+export const getTestimonialsByElection = catchAsyncErr(async (req, res) => {
+    const { electionId } = req.params;
+    const testimonials = await Testimonial.find({ electionId }).populate('citizenId electionId');
+    res.status(200).json({ message: "Testimonials for election retrieved successfully", testimonials });
+});
+
+export const getTestimonialsByCitizen = catchAsyncErr(async (req, res) => {
+    const { citizenId } = req.params;
+    const testimonials = await Testimonial.find({ citizenId }).populate('citizenId electionId');
+    res.status(200).json({ message: "Testimonials for citizen retrieved successfully", testimonials });
+});
