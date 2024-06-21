@@ -7,15 +7,15 @@ const candidateSchema = new mongoose.Schema({
     },
     party: {
         type: String,
-        default: null
+        required: true,
     },
     brief: {
         type: String,
-        default: null
+        required: true,
     },
     criminalRecord: {
         type: String,
-        default: null
+        required: true,
     },
     logoName: {
         type: String,
@@ -24,8 +24,9 @@ const candidateSchema = new mongoose.Schema({
     },
     logoImage: {
         type: String,
-        default: null
-    },
+        required: true,
+        unique: true
+        },
     status: {
         type: String,
         enum: ['approved', 'pending'],
