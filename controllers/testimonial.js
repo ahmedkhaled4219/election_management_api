@@ -25,3 +25,20 @@ export const getTestimonialsByCitizen = catchAsyncErr(async (req, res) => {
     const testimonials = await Testimonial.find({ citizenId }).populate('citizenId electionId');
     res.status(200).json({ message: "Testimonials for citizen retrieved successfully", testimonials });
 });
+export const updateTestimonial = catchAsyncErr(async (req, res) => {
+    const { id } = req.params;
+    const { message } = req.body;
+    const testimonial = await Testimonial.findByIdAndUpdate(id, { message }, { new: true }).populate('citizenId electionId');
+    if (!testimonial) {
+        return res.status(404).json({ message: "Testimonial not found" });
+    }
+    res.status(200).json({ message: "Testimonial updated successfully", testimonial });
+});
+
+export const deleteTestimonial = catchAsyncErr(async (req, res) => {
+    const { id } = req.params;
+    const testimonial = await Testimonial.findByIdAndDelete(id);
+    if (!testimonial) {
+        return res.status(404).json({ message: "Testimonial not found" });
+    }
+    res.status(200).json({ message: "Testimonial deleted successfully" });
