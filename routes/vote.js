@@ -16,7 +16,7 @@ router.post("/",isAuthenticated,checkValidVote, addVote);
 router.get("/", getVotes);
 router.get("/voter-elections/:id",getVoterElections);
 router.get("/toptwo",getTopTwoCandidates);
+router.get("/last", getLastCitizenVote);
 router.get("/:id", getSpecificVote);
-router.get("/last-vote", getLastCitizenVote);
 
 export default router;

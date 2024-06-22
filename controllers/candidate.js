@@ -116,5 +116,11 @@ const showAllCandidates = catchAsyncErr(async (req, res) => {
     .status(200)
     .json({ message: "All candidates showd successfully", paginationResults, count });
 });
-
-export { createCandidate, showAllCandidates, showSpecificCandidate };
+ const getLastCandidateApplied = catchAsyncErr(async (req, res) => {
+    const lastApplication = await Candidate.findOne().sort({ requestedAt: -1 }).populate('citizenId electionId');
+    res.status(200).json({
+        message: 'Last candidate application retrieved successfully',
+        lastApplication
+    });
+});
+export { createCandidate, showAllCandidates, showSpecificCandidate ,getLastCandidateApplied};

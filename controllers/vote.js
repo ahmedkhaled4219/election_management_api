@@ -125,7 +125,7 @@ export const addVote = catchAsyncErr(async (req, res) => {
 })
 
 export const getLastCitizenVote = catchAsyncErr(async (req, res) => {
-    const lastVote = await Vote.find().sort({ voteDate: -1 }).limit(1).populate('citizenId electionId');
+    const lastVote = await Vote.findOne().sort({ createdAt: -1 }).populate('citizenId electionId');
     res.status(200).json({
         message: 'Last citizen vote retrieved successfully',
         lastVote
