@@ -24,8 +24,9 @@ const citizenSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['voter', 'admin','candidate'],
-        required: true
+        enum: ['citizen','admin','candidate'],
+        required: true,
+        default:"citizen"
     },
     password: {
         type: String,
@@ -44,6 +45,7 @@ const citizenSchema = new mongoose.Schema({
     phoneNumber: {
         type: String,
         required: true,
+        unique: true,
         match: [/^\+20\d{10}$/, 'Please use a valid Egyptian phone number (+20 followed by 10 digits).']
     },
     emailConfirmation:{
@@ -74,7 +76,20 @@ const citizenSchema = new mongoose.Schema({
     otpExpiredDate: {
         type: Date,
         default: null
-    }
+    },
+    resetPasswordToken: {
+        type: String,
+        default: null
+    },
+    resetPasswordExpires: {
+        type: Date,
+        default: null
+    },
+    status: {
+        type: String,
+        enum: ['blocked', 'unblocked'],
+        default: 'unblocked'
+    },
 });
 
 citizenSchema.pre('validate', function(next) {

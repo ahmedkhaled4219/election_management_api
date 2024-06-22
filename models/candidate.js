@@ -5,17 +5,22 @@ const candidateSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'Citizen',
     },
+    electionId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Election',
+        required: true,
+    },
     party: {
         type: String,
-        default: null
+        required: true,
     },
     brief: {
         type: String,
-        default: null
+        required: true,
     },
     criminalRecord: {
         type: String,
-        default: null
+        required: true,
     },
     logoName: {
         type: String,
@@ -24,13 +29,24 @@ const candidateSchema = new mongoose.Schema({
     },
     logoImage: {
         type: String,
-        default: null
-    },
+        required: true,
+        unique: true
+        },
     status: {
         type: String,
-        enum: ['approved', 'pending'],
+        enum: ['approved', 'pending','rejected'],
         default: 'pending'
-    }
+    },
+    electionId:{
+        type: Schema.Types.ObjectId,
+        ref: 'Election',
+        required: true 
+    },
+    requestedAt: {
+        type: Date,
+        default: Date.now
+    },
+    reviewedAt: Date,
 });
 
 export const Candidate = mongoose.model('Candidate', candidateSchema);

@@ -1,4 +1,5 @@
 import Election from "../models/election.js ";
+import { catchAsyncErr } from "../utilities/catchError.js";
 
 // Create a new election
 export async function createElection(req, res) {
@@ -74,3 +75,10 @@ export async function deleteElection(req, res) {
     res.status(500).json({ message: err.message });
   }
 }
+export const getLastElection = catchAsyncErr(async (req, res) => {
+  const lastApplication = await Election.findOne().sort({ startdate: -1 });
+  res.status(200).json({
+      message: 'Last candidate application retrieved successfully',
+      lastApplication
+  });
+});

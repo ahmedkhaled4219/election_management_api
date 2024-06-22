@@ -14,6 +14,10 @@ const voteSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref:"Candidate",
     },
+    voteDate: {
+        type: Date,
+        default: Date.now
+    }
 },
 { timestamps: true });
 
