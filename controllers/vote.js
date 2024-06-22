@@ -123,3 +123,11 @@ export const addVote = catchAsyncErr(async (req, res) => {
     }
     res.status(201).json({ message: 'Vote added successfully.' });
 })
+
+export const getLastCitizenVote = catchAsyncErr(async (req, res) => {
+    const lastVote = await Vote.find().sort({ voteDate: -1 }).limit(1).populate('citizenId electionId');
+    res.status(200).json({
+        message: 'Last citizen vote retrieved successfully',
+        lastVote
+    });
+});
