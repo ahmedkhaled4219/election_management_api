@@ -17,7 +17,7 @@ export const getVotes = catchAsyncErr(async (req, res) => {
 })
 
 export const getVoterElections = catchAsyncErr(async (req,res) => {
-    let votes = await Vote.find({ citizenId: req.params.id });
+    let votes = await Vote.find({ citizenId :req.citizen.citizen._id});
     
     let electionPromises = votes.map(async (vote) => {
         let electiondetails = await Election.findById(vote.electionId);

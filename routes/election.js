@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.post("/",isAuthenticated,allowedTo('admin'), createElection);
 router.get("/", getElections);
-router.get("/last-election",getLastElection)
+router.get("/last-election",isAuthenticated,getLastElection)
 router.get("/:id", getElectionById);
 router.patch("/:id",isAuthenticated,allowedTo('admin'),updateElection);
 router.delete("/:id",isAuthenticated,allowedTo('admin'), deleteElection);
