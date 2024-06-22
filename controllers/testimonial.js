@@ -42,3 +42,4 @@ export const deleteTestimonial = catchAsyncErr(async (req, res) => {
         return res.status(404).json({ message: "Testimonial not found" });
     }
     res.status(200).json({ message: "Testimonial deleted successfully" });
+});
