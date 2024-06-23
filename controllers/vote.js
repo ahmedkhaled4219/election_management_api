@@ -9,9 +9,40 @@ import crypto from 'crypto';
 
 export const getVotes = catchAsyncErr(async (req, res) => {
     let votes = await Vote.find();
+    let totalvotes = await Vote.find().countDocuments();
     res.status(200).json({
-        votes: votes
+        "total":totalvotes,
+        "votes": votes
     }); 
+})
+
+export const getVoterElections = catchAsyncErr(async (req,res) => {
+    let votes = await Vote.find({ citizenId :req.citizen.citizen._id});
+    
+    let electionPromises = votes.map(async (vote) => {
+        let electiondetails = await Election.findById(vote.electionId);
+        return electiondetails;
+    });
+
+    let elections = await Promise.all(electionPromises);
+    
+    res.status(200).json({
+        "elections": elections
+    });
+})
+
+export const getTopTwoCandidates = catchAsyncErr(async (req,res) => {
+    let currentElections = await Election.find({enddate : {$gt : Date.now()}});
+    let electionTopTwo = currentElections.map(async (election) => {
+        let toptwo = await Result.find({electionId:election._id}).sort({percentage:-1}).limit(2);
+        return toptwo;
+    });
+    let toptwo = await Promise.all(electionTopTwo);
+    
+    res.status(200).json({
+        "top2": toptwo
+    });
+
 })
 
 export const getSpecificVote = catchAsyncErr(async (req, res) => {
@@ -28,15 +59,25 @@ export const addVote = catchAsyncErr(async (req, res) => {
     const { electionId, candidateId , otp } = req.body;
     const citizenId = req.citizen.citizen._id;
     const email = req.citizen.citizen.email;
-    console.log(req.citizen);
+    //check the election exists
+    const election = await Election.findById(electionId);
+    if(!election){
+        return res.status(400).json({ message: 'this election doesn\'t exists.' });
+    }
+    if(election.candidates.length < 2){
+        return res.status(400).json({ message: 'this election doesn\'t contain candidates enough.' });
+    }
     // Check if a vote already exists for the given electionId and citizenId
     const existingVote = await Vote.findOne({ electionId, citizenId });
     if (existingVote) {
         // If a vote exists, return an error message
         return res.status(400).json({ message: 'You have already voted in this election.' });
     }
-    // check OTP
     const citizen = await Citizen.findOne({ email:email });
+    if (citizen.status === 'blocked') {
+        return res.status(403).json({ message: 'You are blocked from voting.' });
+    }
+    // check OTP
     if (!otp) {
         const generatedOTP = crypto.randomBytes(3).toString('hex'); 
         const otpExpiredDate = new Date(Date.now() + 10 * 60 * 1000);
@@ -80,8 +121,6 @@ export const addVote = catchAsyncErr(async (req, res) => {
             voteCount: 1,
             percentage: ((1 / updatedElection.totalVotes) * 100) // Calculate the percentage for the first vote
         });
-        console.log("total votes = ",updatedElection.totalVotes);
-        console.log("percentage = ",(1 / updatedElection.totalVotes) * 100);
         await newResult.save();
     }
     // Update percentages for all candidates
@@ -92,3 +131,11 @@ export const addVote = catchAsyncErr(async (req, res) => {
     }
     res.status(201).json({ message: 'Vote added successfully.' });
 })
+
+export const getLastCitizenVote = catchAsyncErr(async (req, res) => {
+    const lastVote = await Vote.findOne().sort({ createdAt: -1 }).populate('citizenId electionId');
+    res.status(200).json({
+        message: 'Last citizen vote retrieved successfully',
+        lastVote
+    });
+});
