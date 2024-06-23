@@ -36,12 +36,7 @@ const candidateSchema = new mongoose.Schema({
         type: String,
         enum: ['approved', 'pending','rejected'],
         default: 'pending'
-    },
-    electionId:{
-        type: Schema.Types.ObjectId,
-        ref: 'Election',
-        required: true 
-    },
+    }
     requestedAt: {
         type: Date,
         default: Date.now
