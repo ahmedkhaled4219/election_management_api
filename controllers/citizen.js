@@ -11,8 +11,9 @@ import crypto from 'crypto';
 
 
 const signUp = catchAsyncErr(async (req, res) => {
-    const { ssn, firstName, lastName, role, password, image, email, phoneNumber } = req.body;
-    
+    const { ssn, firstName, lastName, role, password, email, phoneNumber } = req.body;
+    const image = req.file?.path; 
+
     const validation = validateSSN(ssn);
     if (!validation.valid) {
         return res.status(400).json({ message: validation.message });

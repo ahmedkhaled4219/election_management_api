@@ -14,7 +14,7 @@ const storage = new CloudinaryStorage({
     let folder = 'default';
     if (file.fieldname === 'criminalRecord') folder = 'criminal_records';
     if (file.fieldname === 'logoImage') folder = 'logo_images';
-
+    if (file.fieldname === 'image') folder = 'citizen_images';
     return {
       folder: folder,
       resource_type: 'auto', 
