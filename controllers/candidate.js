@@ -3,6 +3,7 @@ import { Citizen } from "../models/citizen.js";
 import Election from "../models/election.js";
 import { catchAsyncErr } from "../utilities/catchError.js";
 import { paginate } from "../utilities/pagination.js";
+import { upload } from "../config/cloudinary.js";
 
 const createCandidate = catchAsyncErr(async (req, res) => {
   const citizenId = req.citizen.citizen._id;
@@ -26,8 +27,13 @@ const createCandidate = catchAsyncErr(async (req, res) => {
     .json({ message: "You are a candidate now", candidate: newCandidate });
 });
 
-export const applyCandidate = catchAsyncErr(async (req, res) => {
-  const { electionId, party, brief, criminalRecord, logoName, logoImage } =
+export const applyCandidate =[
+  upload.fields([
+    { name: 'criminalRecord', maxCount: 1 },
+    { name: 'logoImage', maxCount: 1 },
+  ]), catchAsyncErr(async (req, res) => {
+
+  const { electionId, party, brief,logoName} =
     req.body;
   const citizenId = req.citizen.citizen._id;
  
@@ -35,12 +41,11 @@ export const applyCandidate = catchAsyncErr(async (req, res) => {
   if (citizen.status === 'blocked') {
     return res.status(403).json({ message: 'You are blocked from applying as a candidate.' });
   }
-  
+
   const election = await Election.findById(electionId);
   if (!election) {
     return res.status(404).json({ message: "Election not found." });
   }
-
   const existingApplication = await Candidate.findOne({
     citizenId,
     electionId,
@@ -50,7 +55,8 @@ export const applyCandidate = catchAsyncErr(async (req, res) => {
       .status(400)
       .json({ message: "You have already applied for this election." });
   }
-
+  const criminalRecord = req.files['criminalRecord'] ? req.files['criminalRecord'][0].path : null;
+  const logoImage = req.files['logoImage'] ? req.files['logoImage'][0].path : null;
   const newCandidate = await Candidate.create({
     citizenId,
     electionId,
@@ -68,7 +74,7 @@ export const applyCandidate = catchAsyncErr(async (req, res) => {
       message: "Application submitted successfully",
       candidate: newCandidate,
     });
-});
+})];
 
 export const reviewCandidate = catchAsyncErr(async (req, res) => {
   const { candidateId, status } = req.body;
