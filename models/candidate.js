@@ -36,7 +36,7 @@ const candidateSchema = new mongoose.Schema({
         type: String,
         enum: ['approved', 'pending','rejected'],
         default: 'pending'
-    }
+    },
     requestedAt: {
         type: Date,
         default: Date.now
