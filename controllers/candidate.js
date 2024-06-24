@@ -108,7 +108,10 @@ export const reviewCandidate = catchAsyncErr(async (req, res) => {
 
 const showSpecificCandidate = catchAsyncErr(async (req, res) => {
     const candidateId = req.params.id;
-  const candidate = await Candidate.findById({ _id: candidateId });
+  const candidate = await Candidate.findById({ _id: candidateId }).populate('citizenId').populate('electionId');
+  if (!candidate) {
+    return res.status(404).json({ message: 'Candidate not found.' });
+  }
   res.status(200).json({ message: "candidate showd successfully", candidate });
 });
 
