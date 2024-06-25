@@ -5,18 +5,17 @@ const voteSchema = new Schema({
     electionId:{
         type: Schema.Types.ObjectId,
         ref:"Election",
+        required:true
     },
     citizenId:{
         type: Schema.Types.ObjectId,
         ref:"Citizen",
+        required:true
     },
     candidateId:{
         type: Schema.Types.ObjectId,
         ref:"Candidate",
-    },
-    voteDate: {
-        type: Date,
-        default: Date.now
+        required:true
     }
 },
 { timestamps: true });

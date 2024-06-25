@@ -59,6 +59,14 @@ export const addVote = catchAsyncErr(async (req, res) => {
     const { electionId, candidateId , otp } = req.body;
     const citizenId = req.citizen.citizen._id;
     const email = req.citizen.citizen.email;
+    //check the election exists
+    const election = await Election.findById(electionId);
+    if(!election){
+        return res.status(400).json({ message: 'this election doesn\'t exists.' });
+    }
+    if(election.candidates.length < 2){
+        return res.status(400).json({ message: 'this election doesn\'t contain candidates enough.' });
+    }
     // Check if a vote already exists for the given electionId and citizenId
     const existingVote = await Vote.findOne({ electionId, citizenId });
     if (existingVote) {

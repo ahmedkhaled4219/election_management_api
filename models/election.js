@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const electionSchema = new Schema(
   {
-    title: { type: String, required: true, maxlength: 100 },
+    title: { type: String, required: true, maxlength: 100 ,unique: true},
     description: { type: String, maxlength: 500,required:true },
     startdate: { type: Date, required: true },
     enddate: { type: Date, required: true },
