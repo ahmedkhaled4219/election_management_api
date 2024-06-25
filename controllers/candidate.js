@@ -132,4 +132,30 @@ const showAllCandidates = catchAsyncErr(async (req, res) => {
         lastApplication
     });
 });
-export { createCandidate, showAllCandidates, showSpecificCandidate ,getLastCandidateApplied};
+
+const updateCandidate = [
+  upload.fields([
+    { name: 'criminalRecord', maxCount: 1 },
+    { name: 'logoImage', maxCount: 1 },
+  ]), catchAsyncErr(async (req, res) => {
+    const  candidateId  = req.params.id;
+    const { party, brief, logoName, electionId } = req.body;
+   
+    const candidate = await Candidate.findById(candidateId);
+    if (!candidate) {
+      return res.status(404).json({ message: 'Candidate not found.' });
+    }
+
+    if (party) candidate.party = party;
+    if (brief) candidate.brief = brief;
+    if (logoName) candidate.logoName = logoName;
+    if (electionId) candidate.electionId = electionId;
+    if (req.files['criminalRecord']) candidate.criminalRecord = req.files['criminalRecord'][0].path;
+    if (req.files['logoImage']) candidate.logoImage = req.files['logoImage'][0].path;
+
+    await candidate.save();
+
+    res.status(200).json({ message: 'Candidate updated successfully', candidate });
+  })
+];
+export { createCandidate, showAllCandidates, showSpecificCandidate ,getLastCandidateApplied,updateCandidate};
