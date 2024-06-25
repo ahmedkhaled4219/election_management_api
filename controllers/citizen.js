@@ -165,5 +165,45 @@ res
   .json({ message: "All Citizens showd successfully", paginationResults, count });
 });
 
-export {signUp,signin,confirmationOfEmail,updateCitizenStatus,showAllCitizens};
+const addAdmin = catchAsyncErr(async (req, res) => {
+  const { ssn, firstName, lastName, password, email, phoneNumber } = req.body;
+  const image = req.file?.path; 
+
+  const validation = validateSSN(ssn);
+  if (!validation.valid) {
+      return res.status(400).json({ message: validation.message });
+  }
+
+  const { birthDate, age, governorate, gender } = extractSSNInfo(ssn);
+
+  const existingCitizen = await Citizen.findOne({ ssn });
+  if (existingCitizen) {
+      return res.status(400).json({ message: 'SSN already exists.' });
+  }
+
+  const hash = bcrypt.hashSync(password, Number(process.env.ROUND));
+  
+  const newCitizen = await Citizen.create({
+      ssn,
+      firstName,
+      lastName,
+      role: "admin",  
+      password: hash,
+      image,
+      email,
+      phoneNumber,
+      birthDate,
+      age,
+      governorate,
+      gender
+  });
+
+  var token = jwt.sign({ email }, process.env.JWT_KEY);
+
+  sendEmail({ email, html: confirmEmail(token) });
+  
+  res.status(201).json({ message: "Admin Inserted successfully", citizen: newCitizen });
+});
+
+export {signUp,signin,confirmationOfEmail,updateCitizenStatus,showAllCitizens,addAdmin};
 
