@@ -7,6 +7,7 @@ import {confirmEmail} from '../emailing/confirmationOfEmail.html.js'
 import { sendForgetPasswordEmail } from "../emailing/forgetPasswordEmail.js";
 import { validateSSN, extractSSNInfo } from '../utilities/ssnutils.js';
 import crypto from 'crypto';
+import { paginate } from "../utilities/pagination.js";
 
 
 
@@ -152,5 +153,17 @@ export const resetPassword = async (req, res) => {
 
     res.status(200).json({ message: `Citizen has been ${status}.`, citizen: updatedCitizen });
 });
-export {signUp,signin,confirmationOfEmail,updateCitizenStatus};
+
+const showAllCitizens = catchAsyncErr(async (req, res) => {
+  const { page, limit } = req.query;
+  const paginationResults = await paginate(Citizen, page, limit);
+
+const count = await Citizen.countDocuments(); 
+
+res
+  .status(200)
+  .json({ message: "All Citizens showd successfully", paginationResults, count });
+});
+
+export {signUp,signin,confirmationOfEmail,updateCitizenStatus,showAllCitizens};
 
