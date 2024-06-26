@@ -204,6 +204,25 @@ const addAdmin = catchAsyncErr(async (req, res) => {
   
   res.status(201).json({ message: "Admin Inserted successfully", citizen: newCitizen });
 });
+const updatedCitizenProfile = catchAsyncErr(async (req, res) => {
+  const citizenId = req.citizen.citizen._id;
 
-export {signUp,signin,confirmationOfEmail,updateCitizenStatus,showAllCitizens,addAdmin};
+  const { ssn, firstName, lastName, role, password, email, phoneNumber } = req.body;
+  const updateData = { ssn, firstName, lastName, role, email, phoneNumber };
+
+  if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(password, salt);
+  }
+
+  const updatedCitizen = await Citizen.findByIdAndUpdate(citizenId, updateData, { new: true, runValidators: true });
+
+  if (!updatedCitizen) {
+      return res.status(404).json({ message: 'Citizen not found.' });
+  }
+
+  res.status(200).json({ message: 'Citizen updated successfully', citizen: updatedCitizen });
+});
+
+export {signUp,signin,confirmationOfEmail,updateCitizenStatus,showAllCitizens,addAdmin,updatedCitizenProfile};
 
