@@ -215,8 +215,8 @@ margin: 30px auto;">
 	font-weight: 500;
 	margin-top: 40px;
 	margin-bottom: 0;
-">Hi Smiles Davis,</h1>
-							<p class="near_title last" style="margin-top: 10px;margin-bottom: 0;">Please verify that your email address is hello@SmilesDavis.yeah, and that you entered it when signing up for Waze Carpool.</p>
+">Hello Citizen,</h1>
+							<p class="near_title last" style="margin-top: 10px;margin-bottom: 0;">Please verify that your email address  and that you entered it when signing up for our Election system.</p>
 							<a href = "http://localhost:3000/citizens/confirmationOfEmail/${x}" style="	display: block;
 	width: 100%;
 	max-width: 300px;
@@ -233,7 +233,7 @@ margin: 30px auto;">
 	max-width: 330px;
 	margin: 14px auto 0;
 	font-size: 14px;
-">Wazers who carpool may see that you work at reallygoodemails.com, but your email address stays private.</small>
+"></small>
 						</td>
 					</tr>
 				</tbody></table>
@@ -260,7 +260,7 @@ background: #F4FBF9;">
 	vertical-align: top;
     border: none !important;
 padding: 20px;">
-							<p class="marginless" style="margin: 0;">Happy carpooling, <br>The Waze Carpool Team</p>
+							<p class="marginless" style="margin: 0;">Happy voting process, <br>Election management Team</p>
 						</td>
 					</tr>
 				</tbody></table>
@@ -321,24 +321,24 @@ background: #1FD99A; "><img src="https://carpool-email-assets.s3.amazonaws.com/s
     border: none !important;
 ">
 
-										<p class="footer_item_caption" style="margin: 0 auto;">More about <br><a href="http://waze.com/carpool/index.html" style="	color: #005750;
-" target="_blank">Waze Carpool</a></p>
+										<p class="footer_item_caption" style="margin: 0 auto;"><br><a href="http://waze.com/carpool/index.html" style="	color: #005750;
+" target="_blank"></a></p>
 									</td>
 									<td width="33%" style="	font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
 	vertical-align: top;
     border: none !important;
 ">
 
-										<p class="footer_item_caption" style="margin: 0 auto;">Questions? <br><a href="https://support.google.com/waze/carpool" style="	color: #005750;
-" target="_blank">We're here</a>
+										<p class="footer_item_caption" style="margin: 0 auto;"> <br><a href="https://support.google.com/waze/carpool" style="	color: #005750;
+" target="_blank"></a>
 									</p></td>
 									<td width="33%" style="	font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
 	vertical-align: top;
     border: none !important;
 ">
 
-										<p class="footer_item_caption" style="margin: 0 auto;">Join the community <br><a href="https://www.facebook.com/groups/wazecarpoolers" style="	color: #005750;
-" target="_blank">on Facebook</a></p>
+										<p class="footer_item_caption" style="margin: 0 auto;"><br><a href="https://www.facebook.com/groups/wazecarpoolers" style="	color: #005750;
+" target="_blank"></a></p>
 									</td>
 								</tr>
 							</tbody></table>
