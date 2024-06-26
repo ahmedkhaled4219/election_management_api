@@ -7,6 +7,7 @@ import {confirmEmail} from '../emailing/confirmationOfEmail.html.js'
 import { sendForgetPasswordEmail } from "../emailing/forgetPasswordEmail.js";
 import { validateSSN, extractSSNInfo } from '../utilities/ssnutils.js';
 import crypto from 'crypto';
+import { paginate } from "../utilities/pagination.js";
 
 
 
@@ -152,5 +153,76 @@ export const resetPassword = async (req, res) => {
 
     res.status(200).json({ message: `Citizen has been ${status}.`, citizen: updatedCitizen });
 });
-export {signUp,signin,confirmationOfEmail,updateCitizenStatus};
+
+const showAllCitizens = catchAsyncErr(async (req, res) => {
+  const { page, limit } = req.query;
+  const paginationResults = await paginate(Citizen, page, limit);
+
+const count = await Citizen.countDocuments(); 
+
+res
+  .status(200)
+  .json({ message: "All Citizens showd successfully", paginationResults, count });
+});
+
+const addAdmin = catchAsyncErr(async (req, res) => {
+  const { ssn, firstName, lastName, password, email, phoneNumber } = req.body;
+  const image = req.file?.path; 
+
+  const validation = validateSSN(ssn);
+  if (!validation.valid) {
+      return res.status(400).json({ message: validation.message });
+  }
+
+  const { birthDate, age, governorate, gender } = extractSSNInfo(ssn);
+
+  const existingCitizen = await Citizen.findOne({ ssn });
+  if (existingCitizen) {
+      return res.status(400).json({ message: 'SSN already exists.' });
+  }
+
+  const hash = bcrypt.hashSync(password, Number(process.env.ROUND));
+  
+  const newCitizen = await Citizen.create({
+      ssn,
+      firstName,
+      lastName,
+      role: "admin",  
+      password: hash,
+      image,
+      email,
+      phoneNumber,
+      birthDate,
+      age,
+      governorate,
+      gender
+  });
+
+  var token = jwt.sign({ email }, process.env.JWT_KEY);
+
+  sendEmail({ email, html: confirmEmail(token) });
+  
+  res.status(201).json({ message: "Admin Inserted successfully", citizen: newCitizen });
+});
+const updatedCitizenProfile = catchAsyncErr(async (req, res) => {
+  const citizenId = req.citizen.citizen._id;
+
+  const { ssn, firstName, lastName, role, password, email, phoneNumber } = req.body;
+  const updateData = { ssn, firstName, lastName, role, email, phoneNumber };
+
+  if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(password, salt);
+  }
+
+  const updatedCitizen = await Citizen.findByIdAndUpdate(citizenId, updateData, { new: true, runValidators: true });
+
+  if (!updatedCitizen) {
+      return res.status(404).json({ message: 'Citizen not found.' });
+  }
+
+  res.status(200).json({ message: 'Citizen updated successfully', citizen: updatedCitizen });
+});
+
+export {signUp,signin,confirmationOfEmail,updateCitizenStatus,showAllCitizens,addAdmin,updatedCitizenProfile};
 
