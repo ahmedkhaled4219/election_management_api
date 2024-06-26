@@ -12,6 +12,12 @@ export const createTestimonial = catchAsyncErr(async (req, res) => {
 export const getAllTestimonials = catchAsyncErr(async (req, res) => {
     const { page, limit } = req.query;
     const paginationResults = await paginate(Testimonial, page, limit);
+    const testimonials = paginationResults.results;
+    const populatedTestimonials = await Testimonial.populate(testimonials, { 
+        path: 'citizenId', 
+        select: 'firstName lastName' 
+    });
+    paginationResults.results = populatedTestimonials;
     res.status(200).json({ message: "All testimonials retrieved successfully", paginationResults });
 });
 
