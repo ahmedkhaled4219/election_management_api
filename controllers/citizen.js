@@ -8,6 +8,7 @@ import { sendForgetPasswordEmail } from "../emailing/forgetPasswordEmail.js";
 import { validateSSN, extractSSNInfo } from '../utilities/ssnutils.js';
 import crypto from 'crypto';
 import { paginate } from "../utilities/pagination.js";
+import { Candidate } from "../models/candidate.js";
 
 
 
@@ -49,18 +50,32 @@ const signUp = catchAsyncErr(async (req, res) => {
     
     res.status(201).json({ message: "Inserted successfully", citizen: newCitizen });
 });
+
+
 const signin = catchAsyncErr(async (req, res) => {
     const { ssn, password } = req.body;
     let citizen = await Citizen.findOne({ ssn });
-  
+
     if (!citizen || !(await bcrypt.compare(password, citizen.password))) {
-      return res.json({ message: "incorrect ssn or password" });
+        return res.json({ message: "incorrect ssn or password" });
     }
+
     citizen["password"] = undefined;
-    var token = jwt.sign({ citizen }, process.env.JWT_KEY);
-    var role=citizen.role;
-    res.json({ message: "login successfully", token,role });
-  });
+
+    let tokenPayload = { citizen };
+
+    if (citizen.role === 'candidate') {
+        const candidate = await Candidate.findOne({ citizenId: citizen._id });
+        tokenPayload.candidate = candidate;
+    }
+
+    var token = jwt.sign(tokenPayload, process.env.JWT_KEY);
+    var role = citizen.role;
+    res.json({ message: "login successfully", token, role });
+});
+
+export default signin;
+
 
 const confirmationOfEmail = catchAsyncErr(async (req, res) => {
     let { token } = req.params;
