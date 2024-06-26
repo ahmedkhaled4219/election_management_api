@@ -98,7 +98,7 @@ const confirmationOfEmail = catchAsyncErr(async (req, res) => {
         await citizen.save();
 
         // Send the reset token to the user's email
-        const resetUrl = `http://yourfrontend.com/reset-password?token=${resetToken}`;
+        const resetUrl = `http://localhost:4200/reset-password?token=${resetToken}`;
         await sendForgetPasswordEmail(email, 'Password Reset Request', `Please reset your password by clicking the following link: ${resetUrl}`);
 
         res.status(200).json({ message: 'Password reset email sent.' });
