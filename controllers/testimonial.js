@@ -3,7 +3,8 @@ import {catchAsyncErr} from '../utilities/catchError.js';
 import { paginate } from '../utilities/pagination.js';
 
 export const createTestimonial = catchAsyncErr(async (req, res) => {
-    const { citizenId, electionId, message } = req.body;
+    const citizenId = req.citizen.citizen._id;
+    const {electionId, message } = req.body;
     const testimonial = await Testimonial.create({ citizenId, electionId, message });
     res.status(201).json({ message: "Testimonial created successfully", testimonial });
 });
@@ -21,14 +22,14 @@ export const getTestimonialsByElection = catchAsyncErr(async (req, res) => {
 });
 
 export const getTestimonialsByCitizen = catchAsyncErr(async (req, res) => {
-    const { citizenId } = req.params;
+    const citizenId = req.citizen.citizen._id;
     const testimonials = await Testimonial.find({ citizenId }).populate('citizenId electionId');
     res.status(200).json({ message: "Testimonials for citizen retrieved successfully", testimonials });
 });
 export const updateTestimonial = catchAsyncErr(async (req, res) => {
-    const { id } = req.params;
+    const citizenId = req.citizen.citizen._id;
     const { message } = req.body;
-    const testimonial = await Testimonial.findByIdAndUpdate(id, { message }, { new: true }).populate('citizenId electionId');
+    const testimonial = await Testimonial.findByIdAndUpdate(citizenId, { message }, { new: true }).populate('citizenId electionId');
     if (!testimonial) {
         return res.status(404).json({ message: "Testimonial not found" });
     }
@@ -36,9 +37,10 @@ export const updateTestimonial = catchAsyncErr(async (req, res) => {
 });
 
 export const deleteTestimonial = catchAsyncErr(async (req, res) => {
-    const { id } = req.params;
-    const testimonial = await Testimonial.findByIdAndDelete(id);
+    const citizenId = req.citizen.citizen._id;
+    const testimonial = await Testimonial.findByIdAndDelete(citizenId);
     if (!testimonial) {
         return res.status(404).json({ message: "Testimonial not found" });
     }
     res.status(200).json({ message: "Testimonial deleted successfully" });
+});

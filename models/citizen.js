@@ -24,8 +24,9 @@ const citizenSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['voter', 'admin','candidate'],
-        required: true
+        enum: ['citizen','admin','candidate'],
+        required: true,
+        default:"citizen"
     },
     password: {
         type: String,
