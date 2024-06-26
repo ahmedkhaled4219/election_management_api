@@ -97,8 +97,10 @@ export const reviewCandidate = catchAsyncErr(async (req, res) => {
     }
     election.candidates.push(candidate._id);
     await election.save();
-    await Citizen.findByIdAndUpdate(citizenId, { role: "candidate" });
-  }
+    if (candidate.citizenId && candidate.citizenId._id) {
+      // Update the role of the citizen to "candidate" if approved
+      await Citizen.findByIdAndUpdate(candidate.citizenId._id, { role: "candidate" });
+    } }
 
   candidate.status = status;
   await candidate.save();
