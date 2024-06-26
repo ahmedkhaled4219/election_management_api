@@ -17,6 +17,9 @@ citizenRouter.post('/reset-password', citizenController.resetPassword);
 citizenRouter.put('/status',isAuthenticated,allowedTo("admin"), citizenController.updateCitizenStatus);
 citizenRouter.get('',isAuthenticated,citizenController.showAllCitizens);
 citizenRouter.put('', isAuthenticated,allowedTo("citizen"), citizenController.updatedCitizenProfile);
+citizenRouter.get('/:id',isAuthenticated,citizenController.showSpecificCitizen);
+citizenRouter.patch('/:id',isAuthenticated,citizenController.updateCitizen);
+
 
 
 export default citizenRouter;

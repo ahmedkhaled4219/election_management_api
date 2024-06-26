@@ -224,5 +224,48 @@ const updatedCitizenProfile = catchAsyncErr(async (req, res) => {
   res.status(200).json({ message: 'Citizen updated successfully', citizen: updatedCitizen });
 });
 
-export {signUp,signin,confirmationOfEmail,updateCitizenStatus,showAllCitizens,addAdmin,updatedCitizenProfile};
+const showSpecificCitizen = catchAsyncErr(async (req, res) => {
+  const citizenId = req.params.id;
+const citizen = await Citizen.findById({ _id: citizenId });
+if (!citizen) {
+  return res.status(404).json({ message: 'Citizen not found.' });
+}
+res.status(200).json({ message: "citizen showd successfully", citizen });
+});
+
+const updateCitizen = catchAsyncErr(async (req, res) => {
+  const citizenId = req.params.id;
+  const updates = req.body;
+  
+  // Find the citizen by ID
+  let citizen = await Citizen.findById(citizenId);
+
+  if (!citizen) {
+    return res.status(404).json({ message: 'Citizen not found.' });
+  }
+
+  // Update specific fields if they exist in req.body
+  if (updates.firstName) {
+    citizen.firstName = updates.firstName;
+  }
+  if (updates.lastName) {
+    citizen.lastName = updates.lastName;
+  }
+
+  if (updates.email) {
+    citizen.email = updates.email;
+  }
+
+  if (updates.phoneNumber) {
+    citizen.phoneNumber = updates.phoneNumber;
+  }
+  // Save the updated citizen document
+  await citizen.save();
+
+  res.status(200).json({ message: 'Citizen updated successfully', citizen });
+});
+
+
+export {signUp,signin,confirmationOfEmail,updateCitizenStatus,showAllCitizens
+  ,addAdmin,updatedCitizenProfile,showSpecificCitizen,updateCitizen};
 
