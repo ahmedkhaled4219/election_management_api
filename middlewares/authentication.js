@@ -12,7 +12,7 @@ export const isAuthenticated = (req, res, next) => {
         } 
 
         req.citizen = decoded;
-        if (!req.citizen || !req.citizen.emailConfirmation) {
+        if (!req.citizen || !req.citizen.citizen.emailConfirmation) {
             return res.status(403).json({ message: "Your email is not confirmed." });
         }
 
