@@ -57,7 +57,7 @@ const signin = catchAsyncErr(async (req, res) => {
     let citizen = await Citizen.findOne({ ssn });
 
     if (!citizen || !(await bcrypt.compare(password, citizen.password))) {
-        return res.json({ message: "incorrect ssn or password" });
+        return res.status(404).json({ message: "incorrect ssn or password" });
     }
 
     citizen["password"] = undefined;
@@ -212,6 +212,8 @@ const addAdmin = catchAsyncErr(async (req, res) => {
       governorate,
       gender
   });
+
+  
 
   var token = jwt.sign({ email }, process.env.JWT_KEY);
 
