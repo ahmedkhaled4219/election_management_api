@@ -8,6 +8,7 @@ import { sendForgetPasswordEmail } from "../emailing/forgetPasswordEmail.js";
 import { validateSSN, extractSSNInfo } from '../utilities/ssnutils.js';
 import crypto from 'crypto';
 import { paginate } from "../utilities/pagination.js";
+import { Candidate } from "../models/candidate.js";
 
 
 
@@ -49,18 +50,32 @@ const signUp = catchAsyncErr(async (req, res) => {
     
     res.status(201).json({ message: "Inserted successfully", citizen: newCitizen });
 });
+
+
 const signin = catchAsyncErr(async (req, res) => {
     const { ssn, password } = req.body;
     let citizen = await Citizen.findOne({ ssn });
-  
+
     if (!citizen || !(await bcrypt.compare(password, citizen.password))) {
-      return res.json({ message: "incorrect ssn or password" });
+        return res.status(404).json({ message: "incorrect ssn or password" });
     }
+
     citizen["password"] = undefined;
-    var token = jwt.sign({ citizen }, process.env.JWT_KEY);
-    var role=citizen.role;
-    res.json({ message: "login successfully", token,role });
-  });
+
+    let tokenPayload = { citizen };
+
+    if (citizen.role === 'candidate') {
+        const candidate = await Candidate.findOne({ citizenId: citizen._id });
+        tokenPayload.candidate = candidate;
+    }
+
+    var token = jwt.sign(tokenPayload, process.env.JWT_KEY);
+    var role = citizen.role;
+    res.json({ message: "login successfully", token, role });
+});
+
+export default signin;
+
 
 const confirmationOfEmail = catchAsyncErr(async (req, res) => {
     let { token } = req.params;
@@ -98,7 +113,7 @@ const confirmationOfEmail = catchAsyncErr(async (req, res) => {
         await citizen.save();
 
         // Send the reset token to the user's email
-        const resetUrl = `http://yourfrontend.com/reset-password?token=${resetToken}`;
+        const resetUrl = `http://localhost:4200/reset-password?token=${resetToken}`;
         await sendForgetPasswordEmail(email, 'Password Reset Request', `Please reset your password by clicking the following link: ${resetUrl}`);
 
         res.status(200).json({ message: 'Password reset email sent.' });
@@ -198,6 +213,8 @@ const addAdmin = catchAsyncErr(async (req, res) => {
       gender
   });
 
+  
+
   var token = jwt.sign({ email }, process.env.JWT_KEY);
 
   sendEmail({ email, html: confirmEmail(token) });
@@ -224,5 +241,48 @@ const updatedCitizenProfile = catchAsyncErr(async (req, res) => {
   res.status(200).json({ message: 'Citizen updated successfully', citizen: updatedCitizen });
 });
 
-export {signUp,signin,confirmationOfEmail,updateCitizenStatus,showAllCitizens,addAdmin,updatedCitizenProfile};
+const showSpecificCitizen = catchAsyncErr(async (req, res) => {
+  const citizenId = req.params.id;
+const citizen = await Citizen.findById({ _id: citizenId });
+if (!citizen) {
+  return res.status(404).json({ message: 'Citizen not found.' });
+}
+res.status(200).json({ message: "citizen showd successfully", citizen });
+});
+
+const updateCitizen = catchAsyncErr(async (req, res) => {
+  const citizenId = req.params.id;
+  const updates = req.body;
+  
+  // Find the citizen by ID
+  let citizen = await Citizen.findById(citizenId);
+
+  if (!citizen) {
+    return res.status(404).json({ message: 'Citizen not found.' });
+  }
+
+  // Update specific fields if they exist in req.body
+  if (updates.firstName) {
+    citizen.firstName = updates.firstName;
+  }
+  if (updates.lastName) {
+    citizen.lastName = updates.lastName;
+  }
+
+  if (updates.email) {
+    citizen.email = updates.email;
+  }
+
+  if (updates.phoneNumber) {
+    citizen.phoneNumber = updates.phoneNumber;
+  }
+  // Save the updated citizen document
+  await citizen.save();
+
+  res.status(200).json({ message: 'Citizen updated successfully', citizen });
+});
+
+
+export {signUp,signin,confirmationOfEmail,updateCitizenStatus,showAllCitizens
+  ,addAdmin,updatedCitizenProfile,showSpecificCitizen,updateCitizen};
 

@@ -82,3 +82,24 @@ export const getLastElection = catchAsyncErr(async (req, res) => {
       lastApplication
   });
 });
+
+export const getElectionsByStatus = catchAsyncErr(async (req, res) => {
+  const status = req.query.status;
+
+  let elections;
+  const currentDate = new Date();
+
+  if (status == 'pending') {
+    elections = await Election.find({ startdate: { $gt: currentDate } });
+  } else if (status == 'in-progress') {
+    elections = await Election.find({ startdate: { $lt: currentDate }, enddate: { $gt: currentDate } });
+  } else if (status == 'finished') {
+    elections = await Election.find({ enddate: { $lt: currentDate } });
+  } else {
+    return res.status(400).json({
+      message: "Please provide a valid status."
+    });
+  }
+
+  return res.status(200).json({ elections });
+});

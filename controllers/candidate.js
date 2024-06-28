@@ -46,6 +46,13 @@ export const applyCandidate =[
   if (!election) {
     return res.status(404).json({ message: "Election not found." });
   }
+  const currentDate = new Date();
+  if(election.startdate<currentDate && election.enddate>currentDate){
+    return res.status(404).json({ message: "Invalid request .. the Election in progress" });
+  }
+  if(election.enddate<currentDate){
+    return res.status(404).json({ message: "Invalid request .. the Election is finished" });
+  }
   const existingApplication = await Candidate.findOne({
     citizenId,
     electionId,
@@ -97,8 +104,10 @@ export const reviewCandidate = catchAsyncErr(async (req, res) => {
     }
     election.candidates.push(candidate._id);
     await election.save();
-    await Citizen.findByIdAndUpdate(citizenId, { role: "candidate" });
-  }
+    if (candidate.citizenId && candidate.citizenId._id) {
+      // Update the role of the citizen to "candidate" if approved
+      await Citizen.findByIdAndUpdate(candidate.citizenId._id, { role: "candidate" });
+    } }
 
   candidate.status = status;
   await candidate.save();
@@ -137,11 +146,12 @@ const updateCandidate = [
   upload.fields([
     { name: 'criminalRecord', maxCount: 1 },
     { name: 'logoImage', maxCount: 1 },
+    { name: 'image', maxCount: 1 },
   ]), catchAsyncErr(async (req, res) => {
     const  candidateId  = req.params.id;
-    const { party, brief, logoName, electionId } = req.body;
+    const { party, brief, logoName, electionId,firstName, lastName, image, phoneNumber } = req.body;
    
-    const candidate = await Candidate.findById(candidateId);
+    const candidate = await Candidate.findById(candidateId).populate('citizenId');
     if (!candidate) {
       return res.status(404).json({ message: 'Candidate not found.' });
     }
@@ -152,7 +162,15 @@ const updateCandidate = [
     if (electionId) candidate.electionId = electionId;
     if (req.files['criminalRecord']) candidate.criminalRecord = req.files['criminalRecord'][0].path;
     if (req.files['logoImage']) candidate.logoImage = req.files['logoImage'][0].path;
-
+    
+    const citizen = candidate.citizenId;
+    if (citizen) {
+      if (firstName) citizen.firstName = firstName;
+      if (lastName) citizen.lastName = lastName;
+      if (req.files['image']) citizen.image = req.files['image'][0].path; 
+      if (phoneNumber) citizen.phoneNumber = phoneNumber;
+      await citizen.save();
+    }
     await candidate.save();
 
     res.status(200).json({ message: 'Candidate updated successfully', candidate });

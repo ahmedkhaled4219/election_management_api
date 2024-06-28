@@ -1,6 +1,6 @@
 export const paginate = async (model, page, limit) => {
     const pageNumber = parseInt(page, 10) || 1;
-    const pageSize = parseInt(limit, 10) || 10;
+    const pageSize = parseInt(limit, 10) || 50;
 
     const skip = (pageNumber - 1) * pageSize;
     const total = await model.countDocuments({});
