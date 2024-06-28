@@ -46,6 +46,13 @@ export const applyCandidate =[
   if (!election) {
     return res.status(404).json({ message: "Election not found." });
   }
+  const currentDate = new Date();
+  if(election.startdate<currentDate && election.enddate>currentDate){
+    return res.status(404).json({ message: "Invalid request .. the Election in progress" });
+  }
+  if(election.enddate<currentDate){
+    return res.status(404).json({ message: "Invalid request .. the Election is finished" });
+  }
   const existingApplication = await Candidate.findOne({
     citizenId,
     electionId,
@@ -97,8 +104,10 @@ export const reviewCandidate = catchAsyncErr(async (req, res) => {
     }
     election.candidates.push(candidate._id);
     await election.save();
-    await Citizen.findByIdAndUpdate(citizenId, { role: "candidate" });
-  }
+    if (candidate.citizenId && candidate.citizenId._id) {
+      // Update the role of the citizen to "candidate" if approved
+      await Citizen.findByIdAndUpdate(candidate.citizenId._id, { role: "candidate" });
+    } }
 
   candidate.status = status;
   await candidate.save();
