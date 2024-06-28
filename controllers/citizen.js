@@ -53,26 +53,27 @@ const signUp = catchAsyncErr(async (req, res) => {
 
 
 const signin = catchAsyncErr(async (req, res) => {
-    const { ssn, password } = req.body;
-    let citizen = await Citizen.findOne({ ssn });
+  const { ssn, password } = req.body;
+  let citizen = await Citizen.findOne({ ssn });
 
-    if (!citizen || !(await bcrypt.compare(password, citizen.password))) {
-        return res.status(404).json({ message: "incorrect ssn or password" });
-    }
+  if (!citizen || !(await bcrypt.compare(password, citizen.password))) {
+      return res.status(404).json({ message: "incorrect ssn or password" });
+  }
+  let tokenPayload = {
+      citizenId: citizen._id,
+      role: citizen.role
+  };
+  if (citizen.role === 'candidate') {
+      const candidate = await Candidate.findOne({ citizenId: citizen._id });
+      if (candidate) {
+          tokenPayload.candidateId = candidate._id;
+      }
+  }
 
-    citizen["password"] = undefined;
-
-    let tokenPayload = { citizen };
-
-    if (citizen.role === 'candidate') {
-        const candidate = await Candidate.findOne({ citizenId: citizen._id });
-        tokenPayload.candidate = candidate;
-    }
-
-    var token = jwt.sign(tokenPayload, process.env.JWT_KEY);
-    var role = citizen.role;
-    res.json({ message: "login successfully", token, role });
+  var token = jwt.sign(tokenPayload, process.env.JWT_KEY);
+  res.json({ message: "login successfully", token, role: citizen.role });
 });
+
 
 export default signin;
 
