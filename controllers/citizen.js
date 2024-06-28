@@ -206,7 +206,7 @@ const showAllCitizens = catchAsyncErr(async (req, res) => {
 });
 
 const addAdmin = catchAsyncErr(async (req, res) => {
-  const { ssn, firstName, lastName, password, email, phoneNumber } = req.body;
+  const { ssn, firstName, lastName, password, email, phoneNumber, motherSSN, motherName } = req.body;
   const image = req.file?.path;
 
   const validation = validateSSN(ssn);
@@ -220,7 +220,21 @@ const addAdmin = catchAsyncErr(async (req, res) => {
   if (existingCitizen) {
     return res.status(400).json({ message: 'SSN already exists.' });
   }
-
+  try {
+    const axiosResponse = await axios.get('http://127.0.0.1:5000/citizens/', {
+      params: {
+        ssn,
+        motherSSN,
+        motherName
+      }
+    });
+    if (axiosResponse.status !== 200) {
+      return res.status(400).json({ message: axiosResponse.data.message });
+    }
+  } catch (error) {
+    // console.log(error);
+    return res.status(400).json({ message: 'Error verifying motherSSN or motherName.' });
+  }
   const hash = bcrypt.hashSync(password, Number(process.env.ROUND));
 
   const newCitizen = await Citizen.create({
