@@ -209,3 +209,4 @@ export const getElectionsResult = async (req, res) => {
     });
   }
 };
+

@@ -13,65 +13,73 @@ import { Candidate } from "../models/candidate.js";
 
 
 const signUp = catchAsyncErr(async (req, res) => {
-    const { ssn, firstName, lastName, role, password, email, phoneNumber } = req.body;
-    const image = req.file?.path; 
+  const { ssn, firstName, lastName, role, password, email, phoneNumber } = req.body;
+  const image = req.file?.path;
 
-    const validation = validateSSN(ssn);
-    if (!validation.valid) {
-        return res.status(400).json({ message: validation.message });
-    }
+  const validation = validateSSN(ssn);
+  if (!validation.valid) {
+      return res.status(400).json({ message: validation.message });
+  }
 
-    const { birthDate, age, governorate, gender } = extractSSNInfo(ssn);
- 
-    const existingCitizen = await Citizen.findOne({ ssn });
-    if (existingCitizen) {
-        return res.status(400).json({ message: 'SSN already exists.' });
-    }
-   
+  const { birthDate, age, governorate, gender } = extractSSNInfo(ssn);
 
-    const hash=bcrypt.hashSync(password, Number(process.env.ROUND))
-    
-    const newCitizen = await Citizen.create({
-        ssn,
-        firstName,
-        lastName,
-        role,
-        password:hash,
-        image,
-        email,
-        phoneNumber,
-        birthDate,
-        age,
-        governorate,
-        gender
-    });
-    var token = jwt.sign({ email }, process.env.JWT_KEY);
-    sendEmail({ email, html: confirmEmail(token) });
-    
-    res.status(201).json({ message: "Inserted successfully", citizen: newCitizen });
+  const existingCitizen = await Citizen.findOne({ ssn });
+  if (existingCitizen) {
+      return res.status(400).json({ message: 'SSN already exists.' });
+  }
+
+  const passwordPattern = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,32}$/;
+  if (!passwordPattern.test(password)) {
+      return res.status(400).json({
+          message: 'Password does not meet the complexity requirements. It should be 8-32 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+      });
+  }
+
+  const hash = bcrypt.hashSync(password, Number(process.env.ROUND));
+
+  const newCitizen = await Citizen.create({
+      ssn,
+      firstName,
+      lastName,
+      role,
+      password: hash,
+      image,
+      email,
+      phoneNumber,
+      birthDate,
+      age,
+      governorate,
+      gender
+  });
+
+  var token = jwt.sign({ email }, process.env.JWT_KEY);
+  sendEmail({ email, html: confirmEmail(token) });
+
+  res.status(201).json({ message: "Inserted successfully", citizen: newCitizen });
 });
 
 
+
 const signin = catchAsyncErr(async (req, res) => {
-    const { ssn, password } = req.body;
-    let citizen = await Citizen.findOne({ ssn });
+  const { ssn, password } = req.body;
+  let citizen = await Citizen.findOne({ ssn });
 
-    if (!citizen || !(await bcrypt.compare(password, citizen.password))) {
-        return res.status(404).json({ message: "incorrect ssn or password" });
-    }
+  if (!citizen || !(await bcrypt.compare(password, citizen.password))) {
+      return res.status(404).json({ message: "incorrect ssn or password" });
+  }
 
-    citizen["password"] = undefined;
+  citizen["password"] = undefined;
 
-    let tokenPayload = { citizen };
+  let tokenPayload = { citizen };
 
-    if (citizen.role === 'candidate') {
-        const candidate = await Candidate.findOne({ citizenId: citizen._id });
-        tokenPayload.candidate = candidate;
-    }
+  if (citizen.role === 'candidate') {
+      const candidate = await Candidate.findOne({ citizenId: citizen._id });
+      tokenPayload.candidate = candidate;
+  }
 
-    var token = jwt.sign(tokenPayload, process.env.JWT_KEY);
-    var role = citizen.role;
-    res.json({ message: "login successfully", token, role });
+  var token = jwt.sign(tokenPayload, process.env.JWT_KEY);
+  var role = citizen.role;
+  res.json({ message: "login successfully", token, role });
 });
 
 export default signin;
