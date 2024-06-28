@@ -46,6 +46,13 @@ export const applyCandidate =[
   if (!election) {
     return res.status(404).json({ message: "Election not found." });
   }
+  const currentDate = new Date();
+  if(election.startdate<currentDate && election.enddate>currentDate){
+    return res.status(404).json({ message: "Invalid request .. the Election in progress" });
+  }
+  if(election.enddate<currentDate){
+    return res.status(404).json({ message: "Invalid request .. the Election is finished" });
+  }
   const existingApplication = await Candidate.findOne({
     citizenId,
     electionId,
