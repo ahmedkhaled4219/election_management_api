@@ -56,7 +56,19 @@ export async function getElections(req, res) {
   } else if (status == 'in-progress') {
     elections = await Election.find({ startdate: { $lt: currentDate }, enddate: { $gt: currentDate } });
   } else if (status == 'finished') {
-    elections = await Election.find({ enddate: { $lt: currentDate } });
+    // elections = await Election.find({ enddate: { $lt: currentDate } });
+    elections = await Election.find({
+      $or: [
+        { enddate: { $lt: currentDate } },
+        { 
+          $and: [
+            { startdate: { $lt: currentDate } },
+            { enddate: { $gt: currentDate } },
+            { candidates: { $size: 1 } }
+          ]
+        }
+      ]
+    });
   } else {
     return res.status(400).json({
       message: "Please provide a valid status."
@@ -117,13 +129,45 @@ export async function getElections(req, res) {
 // Get a single election
 export async function getElectionById(req, res) {
   try {
-    const election = await Election.findById(req.params.id).populate(
-      "candidates"
-    );
-    if (!election)
+    const election = await Election.findById(req.params.id);
+
+    if (!election) {
       return res.status(404).json({ message: "Election not found" });
-    res.status(200).json(election);
+    }
+
+    // Array to hold the updated candidates with details
+    const updatedCandidates = [];
+
+    // Iterate over each candidate in the election to fetch details
+    for (const candidate of election.candidates) {
+      // Fetch candidate details
+      const candidateDetails = await Candidate.findById(candidate._id);
+
+      if (candidateDetails) {
+        // Fetch citizen details if candidate details are found
+        const citizenDetails = await Citizen.findById(candidateDetails.citizenId);
+
+        // Append candidate with details to updatedCandidates array
+        updatedCandidates.push({
+          ...candidate.toObject(),
+          candidateDetails: candidateDetails.toObject(),
+          citizenDetails: citizenDetails ? citizenDetails.toObject() : {}, // Include citizen details if found
+        });
+      } else {
+        // If candidate details are not found, push the original candidate object
+        updatedCandidates.push(candidate.toObject());
+      }
+    }
+
+    // Create a copy of the election object with updated candidates
+    const updatedElection = {
+      ...election.toObject(),
+      candidates: updatedCandidates,
+    };
+
+    res.status(200).json(updatedElection); // Send the updated election object with detailed candidates
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 }
