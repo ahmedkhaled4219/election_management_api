@@ -1,4 +1,6 @@
 import Election from "../models/election.js ";
+import {Candidate} from '../models/candidate.js'; 
+import { Citizen } from "../models/citizen.js";
 import { catchAsyncErr } from "../utilities/catchError.js";
 
 // Create a new election
@@ -24,13 +26,58 @@ export async function createElection(req, res) {
 // Get all elections
 export async function getElections(req, res) {
   try {
-    const elections = await Election.find().populate("candidates");
-    res.status(200).json(elections);
+    // Retrieve all elections
+    const elections = await Election.find({});
+
+    // Array to hold the updated elections
+    const updatedElections = [];
+
+    // Iterate over each election to fetch candidate and citizen details
+    for (const election of elections) {
+      const updatedCandidates = [];
+
+      for (const candidate of election.candidates) {
+        console.log(`Processing candidate: ${candidate._id}`);
+        
+        // Fetch candidate details
+        const candidateDetails = await Candidate.findById(candidate._id);
+        if (candidateDetails) {
+          console.log(`Found candidate details for: ${candidate._id}`);
+          
+          // Fetch citizen details
+          const citizenDetails = await Citizen.findById(candidateDetails.citizenId);
+          if (citizenDetails) {
+            console.log(`Found citizen details for: ${candidateDetails.citizenId}`);
+            
+            // Append candidate and citizen details to the candidate object
+            updatedCandidates.push({
+              ...candidate.toObject(),
+              candidateDetails: candidateDetails.toObject(),
+              citizenDetails: citizenDetails.toObject(),
+            });
+          } else {
+            console.log(`No citizen details found for: ${candidateDetails.citizenId}`);
+            updatedCandidates.push(candidate.toObject());
+          }
+        } else {
+          console.log(`No candidate details found for: ${candidate._id}`);
+          updatedCandidates.push(candidate.toObject());
+        }
+      }
+
+      // Add the updated candidates array to the election
+      updatedElections.push({
+        ...election.toObject(),
+        candidates: updatedCandidates
+      });
+    }
+
+    res.status(200).json(updatedElections);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 }
-
 // Get a single election
 export async function getElectionById(req, res) {
   try {
