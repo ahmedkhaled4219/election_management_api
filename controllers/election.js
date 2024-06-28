@@ -7,7 +7,26 @@ import { catchAsyncErr } from "../utilities/catchError.js";
 export async function createElection(req, res) {
   const { title, description, startdate, enddate, candidates } = req.body;
 
+
   try {
+    const currentDate = new Date();
+    const minStartDate = new Date(currentDate);
+    minStartDate.setDate(currentDate.getDate() + 1);
+
+    const minEndDate = new Date(startdate);
+    minEndDate.setDate(minEndDate.getDate() + 1);
+
+    if (new Date(startdate) < minStartDate) {
+      return res.status(400).json({
+        message: "Start date must be at least one day after the current date."
+      });
+    }
+
+    if (new Date(enddate) < minEndDate) {
+      return res.status(400).json({
+        message: "End date must be at least one day after the start date."
+      });
+    }
     const newElection = new Election({
       title,
       description,
@@ -146,3 +165,19 @@ export const getLastElection = catchAsyncErr(async (req, res) => {
       lastApplication
   });
 });
+
+export async function getElectionsByCandidate(req, res) {
+  const candidateId = req.params.candidateId;
+
+  try {
+    const elections = await Election.find({ candidates: candidateId }).populate("candidates");
+
+    if (elections.length === 0) {
+      return res.status(404).json({ message: "No elections found for this candidate" });
+    }
+
+    res.status(200).json(elections);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
