@@ -27,8 +27,25 @@ export async function createElection(req, res) {
 export async function getElections(req, res) {
   try {
     // Retrieve all elections
-    const elections = await Election.find({});
+  const status = req.query.status;
 
+  let elections;
+  const currentDate = new Date();
+  if(status){
+  if (status == 'pending') {
+    elections = await Election.find({ startdate: { $gt: currentDate } });
+  } else if (status == 'in-progress') {
+    elections = await Election.find({ startdate: { $lt: currentDate }, enddate: { $gt: currentDate } });
+  } else if (status == 'finished') {
+    elections = await Election.find({ enddate: { $lt: currentDate } });
+  } else {
+    return res.status(400).json({
+      message: "Please provide a valid status."
+    });
+  }
+}else{
+  elections = await Election.find({});
+}
     // Array to hold the updated elections
     const updatedElections = [];
 
@@ -128,25 +145,4 @@ export const getLastElection = catchAsyncErr(async (req, res) => {
       message: 'Last candidate application retrieved successfully',
       lastApplication
   });
-});
-
-export const getElectionsByStatus = catchAsyncErr(async (req, res) => {
-  const status = req.query.status;
-
-  let elections;
-  const currentDate = new Date();
-
-  if (status == 'pending') {
-    elections = await Election.find({ startdate: { $gt: currentDate } });
-  } else if (status == 'in-progress') {
-    elections = await Election.find({ startdate: { $lt: currentDate }, enddate: { $gt: currentDate } });
-  } else if (status == 'finished') {
-    elections = await Election.find({ enddate: { $lt: currentDate } });
-  } else {
-    return res.status(400).json({
-      message: "Please provide a valid status."
-    });
-  }
-
-  return res.status(200).json({ elections });
 });
