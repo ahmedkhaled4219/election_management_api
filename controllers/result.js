@@ -57,7 +57,7 @@ export const getElectionResult = async (req, res) => {
 
         // Format the final response
         const formattedResults = populatedResults.reduce((acc, result) => {
-            const election = acc.find(e => e?.electionId.equals(result?.electionId));
+            const election = acc.find(e => e?.electionId?.equals(result?.electionId));
             const candidateInfo = {
                 candidateId: result?.candidateId?._id,
                 candidateName: `${result?.candidateId?.citizenId?.firstName} ${result?.candidateId?.citizenId?.lastName}`,
@@ -117,6 +117,9 @@ export const getElectionsResult = async (req, res) => {
     try {
         const results = await Vote.aggregate([
             {
+                $match: { electionId: { $ne: null } } // Filter out documents where electionId is null
+            },
+            {
                 $group: {
                     _id: { electionId: "$electionId", candidateId: "$candidateId" },
                     voteCount: { $sum: 1 }
@@ -136,8 +139,11 @@ export const getElectionsResult = async (req, res) => {
             }
         ]);
 
+        // Filter out any results where electionId is null (extra safety)
+        const filteredResults = results.filter(result => result._id !== null);
+
         // Flatten the results for populating
-        const flattenedResults = results.flatMap(result => result?.candidates.map(candidate => ({
+        const flattenedResults = filteredResults.flatMap(result => result?.candidates.map(candidate => ({
             electionId: result?._id,
             candidateId: candidate?.candidateId,
             voteCount: candidate?.voteCount,
@@ -160,7 +166,7 @@ export const getElectionsResult = async (req, res) => {
 
         // Format the final response
         const formattedResults = populatedResults.reduce((acc, result) => {
-            const election = acc.find(e => e.electionId.equals(result.electionId));
+            const election = acc.find(e => e.electionId?.equals(result.electionId));
             const candidateInfo = {
                 candidateId: result?.candidateId?._id,
                 candidateName: `${result.candidateId?.citizenId?.firstName} ${result.candidateId?.citizenId?.lastName}`,
@@ -180,8 +186,12 @@ export const getElectionsResult = async (req, res) => {
         }, []);
 
         formattedResults.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+        let formatresult2 = formattedResults.filter((a) => {
+            console.log(a.electionId);
+            return a.electionId!==null;
+        })
 
-        res.status(200).json({ results: formattedResults });
+        res.status(200).json({ results: formatresult2 });
     } catch (error) {
         res.status(500).json({
             message: `Server error occurred while loading the results: ${error}`

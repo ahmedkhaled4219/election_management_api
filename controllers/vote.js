@@ -55,29 +55,46 @@ export const getSpecificVote = catchAsyncErr(async (req, res) => {
     });
 })
 
+export const getLastCitizenVote = catchAsyncErr(async (req, res) => {
+    const lastVote = await Vote.findOne().sort({ createdAt: -1 }).populate('citizenId electionId');
+    res.status(200).json({
+        message: 'Last citizen vote retrieved successfully',
+        lastVote
+    });
+});
+
 export const addVote = catchAsyncErr(async (req, res) => {
     const { electionId, candidateId , otp } = req.body;
     const citizenId = req.citizen.citizen._id;
     const email = req.citizen.citizen.email;
-    //check the election exists
+
+    // Check if the election exists
     const election = await Election.findById(electionId);
     if(!election){
-        return res.status(400).json({ message: 'this election doesn\'t exists.' });
+        return res.status(400).json({ message: 'This election doesn\'t exist.' });
     }
     if(election.candidates.length < 2){
-        return res.status(400).json({ message: 'this election doesn\'t contain candidates enough.' });
+        return res.status(400).json({ message: 'This election doesn\'t contain enough candidates.' });
     }
+
+    // Check if the candidate exists in the election
+    const candidateExists = election.candidates.some(candidate => candidate._id == candidateId);
+    if (!candidateExists) {
+        return res.status(400).json({ message: 'This candidate doesn\'t exist in the election.' });
+    }
+
     // Check if a vote already exists for the given electionId and citizenId
     const existingVote = await Vote.findOne({ electionId, citizenId });
     if (existingVote) {
-        // If a vote exists, return an error message
         return res.status(400).json({ message: 'You have already voted in this election.' });
     }
-    const citizen = await Citizen.findOne({ email:email });
+
+    const citizen = await Citizen.findOne({ email: email });
     if (citizen.status === 'blocked') {
         return res.status(403).json({ message: 'You are blocked from voting.' });
     }
-    // check OTP
+
+    // Check OTP
     if (!otp) {
         const generatedOTP = crypto.randomBytes(3).toString('hex'); 
         const otpExpiredDate = new Date(Date.now() + 10 * 60 * 1000);
@@ -91,7 +108,7 @@ export const addVote = catchAsyncErr(async (req, res) => {
         await sendOTP(email, generatedOTP);
 
         return res.status(200).json({ message: 'OTP sent to your email. Please verify to proceed.' });
-    }else {
+    } else {
         // Verify OTP
         if (otp !== citizen.otpkey || Date.now() > new Date(citizen.otpExpiredDate)) {
             return res.status(400).json({ message: 'Invalid or expired OTP.' });
@@ -102,13 +119,29 @@ export const addVote = catchAsyncErr(async (req, res) => {
         citizen.otpExpiredDate = null;
         await citizen.save();
     }
+
     // If no vote exists, create a new vote
     const newVote = new Vote({ electionId, citizenId, candidateId });
     await newVote.save();
+
     // Increment total votes in the election
     await Election.findByIdAndUpdate(electionId, { $inc: { totalVotes: 1 } });
+
+    // Fetch the updated election to get the new totalVotes
     const updatedElection = await Election.findById(electionId);
-    // Increment vote count for candidate in the election
+
+    // Update vote count for all candidates in the election
+    let candidateUpdated = false;
+    for (let i = 0; i < updatedElection.candidates.length; i++) {
+        if (updatedElection.candidates[i]._id == candidateId) {
+            updatedElection.candidates[i].totalVotes += 1;
+            candidateUpdated = true;
+        }
+        updatedElection.candidates[i].percentage = (updatedElection.candidates[i].totalVotes / updatedElection.totalVotes) * 100;
+    }
+
+
+    // for result model 
     const targetResult = await Result.findOne({ electionId, candidateId });
     if (targetResult) {
         const updatedVoteCount = targetResult.voteCount + 1;
@@ -129,13 +162,9 @@ export const addVote = catchAsyncErr(async (req, res) => {
         const newPercentage = (result.voteCount / updatedElection.totalVotes) * 100;
         await Result.updateOne({ _id: result._id }, { percentage: newPercentage });
     }
-    res.status(201).json({ message: 'Vote added successfully.' });
-})
 
-export const getLastCitizenVote = catchAsyncErr(async (req, res) => {
-    const lastVote = await Vote.findOne().sort({ createdAt: -1 }).populate('citizenId electionId');
-    res.status(200).json({
-        message: 'Last citizen vote retrieved successfully',
-        lastVote
-    });
+    // Save the updated election
+    await updatedElection.save();
+
+    res.status(201).json({ message: 'Vote added successfully.' });
 });
