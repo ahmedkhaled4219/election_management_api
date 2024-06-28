@@ -30,7 +30,11 @@ const citizenSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        match: [
+            /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,32}$/,
+            'Password does not meet the complexity requirements. It should be 8-32 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+        ]
     },
     image: {
         type: String,
