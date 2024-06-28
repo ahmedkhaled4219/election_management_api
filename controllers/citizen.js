@@ -67,21 +67,20 @@ const signin = catchAsyncErr(async (req, res) => {
   if (!citizen || !(await bcrypt.compare(password, citizen.password))) {
       return res.status(404).json({ message: "incorrect ssn or password" });
   }
-  let tokenPayload = {
-      citizenId: citizen._id,
-      role: citizen.role
-  };
+
+  citizen["password"] = undefined;
+
+  let tokenPayload = { citizen };
+
   if (citizen.role === 'candidate') {
       const candidate = await Candidate.findOne({ citizenId: citizen._id });
-      if (candidate) {
-          tokenPayload.candidateId = candidate._id;
-      }
+      tokenPayload.candidate = candidate;
   }
 
   var token = jwt.sign(tokenPayload, process.env.JWT_KEY);
-  res.json({ message: "login successfully", token, role: citizen.role });
+  var role = citizen.role;
+  res.json({ message: "login successfully", token, role });
 });
-
 
 export default signin;
 
