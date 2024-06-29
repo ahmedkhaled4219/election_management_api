@@ -37,7 +37,7 @@ const signUp = catchAsyncErr(async (req, res) => {
   }
 
   try {
-    const axiosResponse = await axios.get('http://127.0.0.1:5000/citizens/', {
+    const axiosResponse = await axios.get('http://127.0.0.1:6000/citizens/', {
       params: {
         ssn,
         motherSSN,
@@ -321,7 +321,25 @@ const updateCitizen = catchAsyncErr(async (req, res) => {
   res.status(200).json({ message: 'Citizen updated successfully', citizen });
 });
 
+export const getRejectedComments = catchAsyncErr(async (req, res) => {
+  const citizenId = req.citizen.citizen._id; 
 
+  const citizen = await Citizen.findById(citizenId)
+    .populate({
+      path: 'rejectionComments.electionId',
+      select: ' title description totalVotes startdate enddate', 
+    })
+    .lean();
+
+  if (!citizen) {
+    return res.status(404).json({ message: 'Citizen not found.' });
+  }
+
+  
+  const sortedComments = citizen.rejectionComments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  res.status(200).json({ message: 'Rejected comments retrieved successfully', rejectionComments: sortedComments });
+});
 export {
   signUp, signin, confirmationOfEmail, updateCitizenStatus, showAllCitizens
   , addAdmin, updatedCitizenProfile, showSpecificCitizen, updateCitizen
