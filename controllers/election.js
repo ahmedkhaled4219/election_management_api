@@ -225,3 +225,63 @@ export async function getElectionsByCandidate(req, res) {
     res.status(500).json({ message: err.message });
   }
 }
+
+
+// ahmed nasser dashboard
+// Get all elections
+export async function getCandidateElections(req, res) {
+  try {
+    const citizenId = req.params.id;
+
+    if (!citizenId) {
+      return res.status(400).json({ message: "Citizen ID is required" });
+    }
+
+    // Retrieve all elections
+    let elections = await Election.find({});
+
+    // Array to hold the updated elections
+    const updatedElections = [];
+
+    // Iterate over each election to fetch candidate and citizen details
+    for (const election of elections) {
+      let updatedCandidates = [];
+      let includeElection = false;
+
+      for (const candidate of election.candidates) {
+        // Fetch candidate details
+        const candidateDetails = await Candidate.findById(candidate._id);
+
+        if (candidateDetails) {
+          // Check if the candidate's citizenId matches the provided citizenId
+          if (candidateDetails.citizenId.toString() == citizenId) {
+            includeElection = true; // Mark this election to be included in the result
+
+            // Fetch citizen details
+            const citizenDetails = await Citizen.findById(candidateDetails.citizenId);
+
+            // Append candidate and citizen details to the candidate object
+            updatedCandidates.push({
+              ...candidate.toObject(),
+              candidateDetails: candidateDetails.toObject(),
+              citizenDetails: citizenDetails ? citizenDetails.toObject() : {},
+            });
+          }
+        }
+      }
+
+      // Add the updated candidates array to the election if it includes the candidate with the given citizenId
+      if (includeElection) {
+        updatedElections.push({
+          ...election.toObject(),
+          candidates: updatedCandidates
+        });
+      }
+    }
+
+    res.status(200).json(updatedElections);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+}
