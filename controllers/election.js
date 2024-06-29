@@ -52,9 +52,9 @@ export async function getElections(req, res) {
   const currentDate = new Date();
   if(status){
   if (status == 'pending') {
-    elections = await Election.find({ startdate: { $gt: currentDate } });
+    elections = await Election.find({ startdate: { $gt: currentDate } }).sort({ createdAt: -1 });
   } else if (status == 'in-progress') {
-    elections = await Election.find({ startdate: { $lt: currentDate }, enddate: { $gt: currentDate } });
+    elections = await Election.find({ startdate: { $lt: currentDate }, enddate: { $gt: currentDate } }).sort({ createdAt: -1 });;
   } else if (status == 'finished') {
     // elections = await Election.find({ enddate: { $lt: currentDate } });
     elections = await Election.find({
@@ -68,14 +68,14 @@ export async function getElections(req, res) {
           ]
         }
       ]
-    });
+    }).sort({ createdAt: -1 });;
   } else {
     return res.status(400).json({
       message: "Please provide a valid status."
     });
   }
 }else{
-  elections = await Election.find({});
+  elections = await Election.find({}).sort({ createdAt: -1 });
 }
     // Array to hold the updated elections
     const updatedElections = [];
