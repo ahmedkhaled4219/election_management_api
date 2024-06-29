@@ -84,7 +84,7 @@ export const applyCandidate =[
 })];
 
 export const reviewCandidate = catchAsyncErr(async (req, res) => {
-  const { candidateId, status } = req.body;
+  const { candidateId, status,comment  } = req.body;
   const citizenId = req.citizen.citizen._id;
   if (!["approved", "rejected"].includes(status)) {
     return res
@@ -107,7 +107,19 @@ export const reviewCandidate = catchAsyncErr(async (req, res) => {
     if (candidate.citizenId && candidate.citizenId._id) {
       // Update the role of the citizen to "candidate" if approved
       await Citizen.findByIdAndUpdate(candidate.citizenId._id, { role: "candidate" });
-    } }
+    } }else if(status==="rejected"){
+      if (!comment) {
+        return res.status(400).json({ message: 'Comment is required for rejection.' });
+      }
+      const rejectionComment = {
+        electionId: candidate.electionId,
+        comment,
+        timestamp: new Date(), 
+      };
+      await Citizen.findByIdAndUpdate(candidate.citizenId, {
+        $push: { rejectionComments: rejectionComment },
+      });
+    }
 
   candidate.status = status;
   await candidate.save();

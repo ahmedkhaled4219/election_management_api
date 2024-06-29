@@ -91,6 +91,23 @@ const citizenSchema = new mongoose.Schema({
         enum: ['blocked', 'unblocked'],
         default: 'unblocked'
     },
+    rejectionComments: [
+        {
+            electionId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Election',
+                required: true
+            },
+            comment: {
+                type: String,
+                required: true
+            },
+            timestamp: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ],
 });
 
 citizenSchema.pre('validate', function(next) {
