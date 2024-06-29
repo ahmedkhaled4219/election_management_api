@@ -6,7 +6,8 @@ import {
   updateElection,
   deleteElection,
   getLastElection,
-  getElectionsByCandidate
+  getElectionsByCandidate,
+  getCandidateElections
 } from "../controllers/election.js";
 import {  allowedTo } from "../middlewares/authorization.js";
 import { isAuthenticated } from "../middlewares/authentication.js";
@@ -17,7 +18,7 @@ router.post("/",isAuthenticated,allowedTo('admin'), createElection);
 router.get("/", getElections);
 router.get("/last-election",isAuthenticated,getLastElection)
 router.get("/:id", getElectionById);
-router.get('/candidate/:candidateId', getElectionsByCandidate);
+router.get('/candidate/:id', getCandidateElections);
 router.patch("/:id",isAuthenticated,allowedTo('admin'),updateElection);
 router.delete("/:id",isAuthenticated,allowedTo('admin'), deleteElection);
 
