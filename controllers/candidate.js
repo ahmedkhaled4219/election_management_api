@@ -74,7 +74,18 @@ export const applyCandidate =[
     logoImage,
     status: "pending",
   });
-
+  
+  await Citizen.findByIdAndUpdate(citizenId, {
+    $push: {
+      applicationStatus: {
+        electionId,
+        comment: 'Application submitted',
+        status: 'pending',
+        timestamp: new Date()
+      }
+    }
+  });
+  
   res
     .status(201)
     .json({
@@ -84,7 +95,8 @@ export const applyCandidate =[
 })];
 
 export const reviewCandidate = catchAsyncErr(async (req, res) => {
-  const { candidateId, status,comment  } = req.body;
+  const { candidateId, status,comment: providedComment  } = req.body;
+  let comment = providedComment;
   const citizenId = req.citizen.citizen._id;
   if (!["approved", "rejected"].includes(status)) {
     return res
@@ -106,18 +118,29 @@ export const reviewCandidate = catchAsyncErr(async (req, res) => {
     await election.save();
     if (candidate.citizenId && candidate.citizenId._id) {
       // Update the role of the citizen to "candidate" if approved
-      await Citizen.findByIdAndUpdate(candidate.citizenId._id, { role: "candidate" });
-    } }else if(status==="rejected"){
+      await Citizen.findByIdAndUpdate(candidate.citizenId._id, { role: "candidate" }); 
+    }
+    comment="application approved"
+    await Citizen.findByIdAndUpdate(candidate.citizenId, {
+      $set: {
+        "applicationStatus.$[elem].status": status,
+        "applicationStatus.$[elem].comment": comment
+      }
+    }, {
+      arrayFilters: [{ "elem.electionId": candidate.electionId }]
+    }); 
+  }
+    else if(status==="rejected"){
       if (!comment) {
         return res.status(400).json({ message: 'Comment is required for rejection.' });
       }
-      const rejectionComment = {
-        electionId: candidate.electionId,
-        comment,
-        timestamp: new Date(), 
-      };
       await Citizen.findByIdAndUpdate(candidate.citizenId, {
-        $push: { rejectionComments: rejectionComment },
+        $set: {
+          "applicationStatus.$[elem].status": status,
+          "applicationStatus.$[elem].comment": comment
+        }
+      }, {
+        arrayFilters: [{ "elem.electionId": candidate.electionId }]
       });
     }
 
