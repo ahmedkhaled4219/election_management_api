@@ -121,7 +121,7 @@ export async function getElections(req, res) {
       limit,
       total,
       totalPages: Math.ceil(total / limit),
-      result: updatedElections,
+      results: updatedElections,
     });
   } catch (err) {
     console.error(err);
