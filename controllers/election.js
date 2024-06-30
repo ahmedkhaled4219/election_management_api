@@ -2,6 +2,7 @@ import Election from "../models/election.js ";
 import {Candidate} from '../models/candidate.js'; 
 import { Citizen } from "../models/citizen.js";
 import { catchAsyncErr } from "../utilities/catchError.js";
+import { paginateArray } from "../utilities/pagination.js";
 
 // Create a new election
 export async function createElection(req, res) {
@@ -42,90 +43,86 @@ export async function createElection(req, res) {
   }
 }
 
-// Get all elections
 export async function getElections(req, res) {
   try {
-    // Retrieve all elections
-  const status = req.query.status;
+    const status = req.query.status;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-  let elections;
-  const currentDate = new Date();
-  if(status){
-  if (status == 'pending') {
-    elections = await Election.find({ startdate: { $gt: currentDate } }).sort({ createdAt: -1 });
-  } else if (status == 'in-progress') {
-    elections = await Election.find({ startdate: { $lt: currentDate }, enddate: { $gt: currentDate } }).sort({ createdAt: -1 });;
-  } else if (status == 'finished') {
-    // elections = await Election.find({ enddate: { $lt: currentDate } });
-    elections = await Election.find({
-      $or: [
-        { enddate: { $lt: currentDate } },
-        { 
-          $and: [
-            { startdate: { $lt: currentDate } },
-            { enddate: { $gt: currentDate } },
-            { candidates: { $size: 1 } }
+    let query = {};
+    const currentDate = new Date();
+
+    if (status) {
+      if (status == 'pending') {
+        query = { startdate: { $gt: currentDate } };
+      } else if (status == 'in-progress') {
+        query = { startdate: { $lt: currentDate }, enddate: { $gt: currentDate } };
+      } else if (status == 'finished') {
+        query = {
+          $or: [
+            { enddate: { $lt: currentDate } },
+            {
+              $and: [
+                { startdate: { $lt: currentDate } },
+                { enddate: { $gt: currentDate } },
+                { candidates: { $size: 1 } }
+              ]
+            }
           ]
-        }
-      ]
-    }).sort({ createdAt: -1 });;
-  } else {
-    return res.status(400).json({
-      message: "Please provide a valid status."
-    });
-  }
-}else{
-  elections = await Election.find({}).sort({ createdAt: -1 });
-}
-    // Array to hold the updated elections
+        };
+      } else {
+        return res.status(400).json({
+          message: "Please provide a valid status."
+        });
+      }
+    }
+
+    const elections = await Election.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const total = await Election.countDocuments(query);
+
     const updatedElections = [];
 
-    // Iterate over each election to fetch candidate and citizen details
     for (const election of elections) {
       const updatedCandidates = [];
 
       for (const candidate of election.candidates) {
-        console.log(`Processing candidate: ${candidate._id}`);
-        
-        // Fetch candidate details
         const candidateDetails = await Candidate.findById(candidate._id);
         if (candidateDetails) {
-          console.log(`Found candidate details for: ${candidate._id}`);
-          
-          // Fetch citizen details
           const citizenDetails = await Citizen.findById(candidateDetails.citizenId);
           if (citizenDetails) {
-            console.log(`Found citizen details for: ${candidateDetails.citizenId}`);
-            
-            // Append candidate and citizen details to the candidate object
             updatedCandidates.push({
               ...candidate.toObject(),
               candidateDetails: candidateDetails.toObject(),
               citizenDetails: citizenDetails.toObject(),
             });
           } else {
-            console.log(`No citizen details found for: ${candidateDetails.citizenId}`);
             updatedCandidates.push(candidate.toObject());
           }
         } else {
-          console.log(`No candidate details found for: ${candidate._id}`);
           updatedCandidates.push(candidate.toObject());
         }
       }
 
-      // Add the updated candidates array to the election
       updatedElections.push({
         ...election.toObject(),
         candidates: updatedCandidates
       });
     }
 
-    res.status(200).json(updatedElections);
+    const paginationResults = paginateArray(updatedElections, page, limit);
+
+    res.status(200).json({
+      ...paginationResults,
+      total,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
   }
 }
+
+
 // Get a single election
 export async function getElectionById(req, res) {
   try {

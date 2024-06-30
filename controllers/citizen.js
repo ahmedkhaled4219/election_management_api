@@ -7,7 +7,7 @@ import { confirmEmail } from '../emailing/confirmationOfEmail.html.js'
 import { sendForgetPasswordEmail } from "../emailing/forgetPasswordEmail.js";
 import { validateSSN, extractSSNInfo } from '../utilities/ssnutils.js';
 import crypto from 'crypto';
-import { paginate } from "../utilities/pagination.js";
+import { paginate, paginateArray } from "../utilities/pagination.js";
 import { Candidate } from "../models/candidate.js";
 import axios from "axios";
 
@@ -320,14 +320,14 @@ const updateCitizen = catchAsyncErr(async (req, res) => {
 
   res.status(200).json({ message: 'Citizen updated successfully', citizen });
 });
-
 export const getApplicationStatus = catchAsyncErr(async (req, res) => {
-  const citizenId = req.citizen.citizen._id; 
+  const { page , limit } = req.query;
+  const citizenId = req.citizen.citizen._id;
 
   const citizen = await Citizen.findById(citizenId)
     .populate({
       path: 'applicationStatus.electionId',
-      select: 'title description totalVotes startdate enddate', 
+      select: 'title description totalVotes startdate enddate',
     })
     .lean();
 
@@ -335,12 +335,18 @@ export const getApplicationStatus = catchAsyncErr(async (req, res) => {
     return res.status(404).json({ message: 'Citizen not found.' });
   }
 
-  const sortedStatus = citizen.applicationStatus.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const applicationStatus = citizen.applicationStatus || [];
+  const sortedStatus = applicationStatus.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-  res.status(200).json({ message: 'Application status retrieved successfully', applicationStatus: sortedStatus });
+  const paginationResults = paginateArray(sortedStatus, page, limit);
+
+  res.status(200).json({
+    message: 'Application status retrieved successfully',
+    ...paginationResults,
+  });
 });
+
 export {
   signUp, signin, confirmationOfEmail, updateCitizenStatus, showAllCitizens
   , addAdmin, updatedCitizenProfile, showSpecificCitizen, updateCitizen
 };
-
