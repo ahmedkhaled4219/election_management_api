@@ -45,8 +45,10 @@ export async function createElection(req, res) {
 // Get all elections
 export async function getElections(req, res) {
   try {
-    // Retrieve all elections
-  const status = req.query.status;
+    const status = req.query.status;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
   let elections;
   const currentDate = new Date();
@@ -120,12 +122,22 @@ export async function getElections(req, res) {
       });
     }
 
-    res.status(200).json(updatedElections);
+    // Get the total number of elections matching the query
+    const total = await Election.countDocuments(query);
+
+    res.status(200).json({
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data: updatedElections
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
   }
 }
+
 // Get a single election
 export async function getElectionById(req, res) {
   try {

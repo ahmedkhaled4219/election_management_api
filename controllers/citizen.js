@@ -37,7 +37,7 @@ const signUp = catchAsyncErr(async (req, res) => {
   }
 
   try {
-    const axiosResponse = await axios.get('http://127.0.0.1:6000/citizens/', {
+    const axiosResponse = await axios.get('http://127.0.0.1:5000/citizens/', {
       params: {
         ssn,
         motherSSN,
