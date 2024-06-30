@@ -91,7 +91,7 @@ const citizenSchema = new mongoose.Schema({
         enum: ['blocked', 'unblocked'],
         default: 'unblocked'
     },
-    rejectionComments: [
+    applicationStatus: [
         {
             electionId: {
                 type: mongoose.Schema.Types.ObjectId,
@@ -100,7 +100,12 @@ const citizenSchema = new mongoose.Schema({
             },
             comment: {
                 type: String,
-                required: true
+                default: 'Application submitted'
+            },
+            status: {
+                type: String,
+                enum: ['approved', 'rejected', 'pending'],
+                default: 'pending'
             },
             timestamp: {
                 type: Date,
