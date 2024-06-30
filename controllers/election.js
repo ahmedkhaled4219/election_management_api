@@ -43,11 +43,12 @@ export async function createElection(req, res) {
   }
 }
 
+
 export async function getElections(req, res) {
   try {
     const status = req.query.status;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = 5;
     const skip = (page - 1) * limit;
 
     let query = {};
@@ -81,7 +82,7 @@ export async function getElections(req, res) {
     const total = await Election.countDocuments(query);
 
     const elections = await Election.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 }) 
       .skip(skip)
       .limit(limit)
       .lean();
@@ -120,13 +121,14 @@ export async function getElections(req, res) {
       limit,
       total,
       totalPages: Math.ceil(total / limit),
-      data: updatedElections,
+      result: updatedElections,
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
   }
 }
+
 
 
 // Get a single election
