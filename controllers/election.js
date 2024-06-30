@@ -78,43 +78,49 @@ export async function getElections(req, res) {
       }
     }
 
-    const elections = await Election.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
     const total = await Election.countDocuments(query);
 
-    const updatedElections = [];
+    const elections = await Election.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
+    // Process candidates for each election
+    const updatedElections = [];
     for (const election of elections) {
       const updatedCandidates = [];
 
       for (const candidate of election.candidates) {
-        const candidateDetails = await Candidate.findById(candidate._id);
+        const candidateDetails = await Candidate.findById(candidate._id).lean();
         if (candidateDetails) {
-          const citizenDetails = await Citizen.findById(candidateDetails.citizenId);
+          const citizenDetails = await Citizen.findById(candidateDetails.citizenId).lean();
           if (citizenDetails) {
             updatedCandidates.push({
-              ...candidate.toObject(),
-              candidateDetails: candidateDetails.toObject(),
-              citizenDetails: citizenDetails.toObject(),
+              ...candidate,
+              candidateDetails,
+              citizenDetails,
             });
           } else {
-            updatedCandidates.push(candidate.toObject());
+            updatedCandidates.push(candidate);
           }
         } else {
-          updatedCandidates.push(candidate.toObject());
+          updatedCandidates.push(candidate);
         }
       }
 
       updatedElections.push({
-        ...election.toObject(),
-        candidates: updatedCandidates
+        ...election,
+        candidates: updatedCandidates,
       });
     }
 
-    const paginationResults = paginateArray(updatedElections, page, limit);
-
     res.status(200).json({
-      ...paginationResults,
+      page,
+      limit,
       total,
+      totalPages: Math.ceil(total / limit),
+      data: updatedElections,
     });
   } catch (err) {
     console.error(err);
