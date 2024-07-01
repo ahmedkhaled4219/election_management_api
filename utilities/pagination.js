@@ -1,21 +1,28 @@
-export const paginate = async (model, page, limit) => {
-    const pageNumber = parseInt(page, 10) || 1;
-    const pageSize = parseInt(limit, 10) || 50;
+export const paginate = async (model, query, page, limit) => {
+    try {
+        const pageNumber = parseInt(page, 10) || 1;
+        const pageSize = parseInt(limit, 10) || 50;
+        const skip = (pageNumber - 1) * pageSize;
+        const filter = {
+            status: query.status, 
+        };
+        const total = await model.countDocuments(filter);
+        const results = await model.find(filter).skip(skip).limit(pageSize);
 
-    const skip = (pageNumber - 1) * pageSize;
-    const total = await model.countDocuments({});
+        const pages = Math.ceil(total / pageSize);
 
-    const pages = Math.ceil(total / pageSize);
-    const results = await model.find({}).skip(skip).limit(pageSize);
-
-    return {
-        page: pageNumber,
-        limit: pageSize,
-        total,
-        pages,
-        results,
-    };
+        return {
+            page: pageNumber,
+            limit: pageSize,
+            total,
+            pages,
+            results,
+        };
+    } catch (error) {
+        throw new Error(`Pagination error: ${error.message}`);
+    }
 };
+
 export const paginateArray = (array, page, limit) => {
     const pageNumber = parseInt(page, 10) || 1;
     const pageSize = parseInt(limit, 10) || 50;

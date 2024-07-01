@@ -160,15 +160,15 @@ const showSpecificCandidate = catchAsyncErr(async (req, res) => {
 });
 
 const showAllCandidates = catchAsyncErr(async (req, res) => {
-    const { page, limit } = req.query;
-    const paginationResults = await paginate(Candidate, page, limit);
+  const { page, limit, status } = req.query;
+  const paginationResults = await paginate(Candidate, { status }, page, limit);
+  res.status(200).json({
+    message: `Candidates with status '${status}' retrieved successfully`,
+    paginationResults,
+  });
 
-  const count = await Candidate.countDocuments(); 
-
-  res
-    .status(200)
-    .json({ message: "All candidates showd successfully", paginationResults, count });
 });
+
  const getLastCandidateApplied = catchAsyncErr(async (req, res) => {
     const lastApplication = await Candidate.findOne().sort({ requestedAt: -1 }).populate('citizenId electionId');
     res.status(200).json({
