@@ -30,7 +30,8 @@ const citizenSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        
     },
     image: {
         type: String,
@@ -90,6 +91,28 @@ const citizenSchema = new mongoose.Schema({
         enum: ['blocked', 'unblocked'],
         default: 'unblocked'
     },
+    applicationStatus: [
+        {
+            electionId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Election',
+                required: true
+            },
+            comment: {
+                type: String,
+                default: 'Application submitted'
+            },
+            status: {
+                type: String,
+                enum: ['approved', 'rejected', 'pending'],
+                default: 'pending'
+            },
+            timestamp: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ],
 });
 
 citizenSchema.pre('validate', function(next) {

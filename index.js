@@ -32,7 +32,7 @@ app.use((error, req, res, next) => {
     message = `${field} already exists.`;
   }
 
-  res.status(statusCode).json(message);
+   return res.status(statusCode).json(message);
 });
 
 dbConnection();

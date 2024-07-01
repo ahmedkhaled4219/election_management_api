@@ -46,6 +46,13 @@ export const applyCandidate =[
   if (!election) {
     return res.status(404).json({ message: "Election not found." });
   }
+  const currentDate = new Date();
+  if(election.startdate<currentDate && election.enddate>currentDate){
+    return res.status(404).json({ message: "Invalid request .. the Election in progress" });
+  }
+  if(election.enddate<currentDate){
+    return res.status(404).json({ message: "Invalid request .. the Election is finished" });
+  }
   const existingApplication = await Candidate.findOne({
     citizenId,
     electionId,
@@ -67,7 +74,18 @@ export const applyCandidate =[
     logoImage,
     status: "pending",
   });
-
+  
+  await Citizen.findByIdAndUpdate(citizenId, {
+    $push: {
+      applicationStatus: {
+        electionId,
+        comment: 'Application submitted',
+        status: 'pending',
+        timestamp: new Date()
+      }
+    }
+  });
+  
   res
     .status(201)
     .json({
@@ -77,7 +95,8 @@ export const applyCandidate =[
 })];
 
 export const reviewCandidate = catchAsyncErr(async (req, res) => {
-  const { candidateId, status } = req.body;
+  const { candidateId, status,comment: providedComment  } = req.body;
+  let comment = providedComment;
   const citizenId = req.citizen.citizen._id;
   if (!["approved", "rejected"].includes(status)) {
     return res
@@ -97,8 +116,33 @@ export const reviewCandidate = catchAsyncErr(async (req, res) => {
     }
     election.candidates.push(candidate._id);
     await election.save();
-    await Citizen.findByIdAndUpdate(citizenId, { role: "candidate" });
+    if (candidate.citizenId && candidate.citizenId._id) {
+      // Update the role of the citizen to "candidate" if approved
+      await Citizen.findByIdAndUpdate(candidate.citizenId._id, { role: "candidate" }); 
+    }
+    comment="application approved"
+    await Citizen.findByIdAndUpdate(candidate.citizenId, {
+      $set: {
+        "applicationStatus.$[elem].status": status,
+        "applicationStatus.$[elem].comment": comment
+      }
+    }, {
+      arrayFilters: [{ "elem.electionId": candidate.electionId }]
+    }); 
   }
+    else if(status==="rejected"){
+      if (!comment) {
+        return res.status(400).json({ message: 'Comment is required for rejection.' });
+      }
+      await Citizen.findByIdAndUpdate(candidate.citizenId, {
+        $set: {
+          "applicationStatus.$[elem].status": status,
+          "applicationStatus.$[elem].comment": comment
+        }
+      }, {
+        arrayFilters: [{ "elem.electionId": candidate.electionId }]
+      });
+    }
 
   candidate.status = status;
   await candidate.save();
@@ -116,15 +160,15 @@ const showSpecificCandidate = catchAsyncErr(async (req, res) => {
 });
 
 const showAllCandidates = catchAsyncErr(async (req, res) => {
-    const { page, limit } = req.query;
-    const paginationResults = await paginate(Candidate, page, limit);
+  const { page, limit, status } = req.query;
+  const paginationResults = await paginate(Candidate, { status }, page, 5);
+  res.status(200).json({
+    message: `Candidates with status '${status}' retrieved successfully`,
+    paginationResults,
+  });
 
-  const count = await Candidate.countDocuments(); 
-
-  res
-    .status(200)
-    .json({ message: "All candidates showd successfully", paginationResults, count });
 });
+
  const getLastCandidateApplied = catchAsyncErr(async (req, res) => {
     const lastApplication = await Candidate.findOne().sort({ requestedAt: -1 }).populate('citizenId electionId');
     res.status(200).json({
@@ -167,4 +211,18 @@ const updateCandidate = [
     res.status(200).json({ message: 'Candidate updated successfully', candidate });
   })
 ];
+
+
+export const getApprovedCandidates = catchAsyncErr(async(req,res) => {
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || 100;
+  const skip = (page-1) * limit;
+  let count = await Candidate.find({status:"approved"}).count();
+  let candiates = await Candidate.find({status : "approved"}).populate('citizenId electionId').skip(skip).limit(limit);
+  res.status(200).json({
+    count,
+    candiates
+  });
+})
+
 export { createCandidate, showAllCandidates, showSpecificCandidate ,getLastCandidateApplied,updateCandidate};

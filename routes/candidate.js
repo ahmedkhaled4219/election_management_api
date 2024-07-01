@@ -9,6 +9,7 @@ const candidateRouter=express.Router();
 
 // candidateRouter.post('/createCandidate',isAuthenticated,candidateController.createCandidate);
 candidateRouter.get('/last-candidate',isAuthenticated,candidateController.getLastCandidateApplied);
+candidateRouter.get('/approved',candidateController.getApprovedCandidates);
 candidateRouter.get('/:id',isAuthenticated,candidateController.showSpecificCandidate);
 candidateRouter.patch("/:id",isAuthenticated,candidateController.updateCandidate);
 candidateRouter.get('',isAuthenticated,candidateController.showAllCandidates);
