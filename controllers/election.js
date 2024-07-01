@@ -46,17 +46,10 @@ export async function createElection(req, res) {
 
 export async function getElections(req, res) {
   try {
-    const citizenId = req.citizen.citizen._id;
-    const citizenData = await Citizen.findById(citizenId)
-    if (citizenData.status==="blocked") {
-      return res.status(403).json({ message: 'Your account is blocked.' });
-    }
-   
     const status = req.query.status;
     const page = parseInt(req.query.page) || 1;
     const limit = 5;
     const skip = (page - 1) * limit;
-
     let query = {};
     const currentDate = new Date();
 
