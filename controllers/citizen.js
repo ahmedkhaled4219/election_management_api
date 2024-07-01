@@ -349,6 +349,18 @@ export const getApplicationStatus = catchAsyncErr(async (req, res) => {
   });
 });
 
+export const getBlockedCitizens = catchAsyncErr(async (req , res) => {
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || 100;
+  const skip = (page-1) * limit;
+  let count = await Citizen.find({status:"blocked"}).count();
+  let citizen2 = await Citizen.find({status:"blocked"}).skip(skip).limit(limit);
+  res.status(200).json({
+    count:count,
+    citizens:citizen2
+  });
+})
+
 export {
   signUp, signin, confirmationOfEmail, updateCitizenStatus, showAllCitizens
   , addAdmin, updatedCitizenProfile, showSpecificCitizen, updateCitizen

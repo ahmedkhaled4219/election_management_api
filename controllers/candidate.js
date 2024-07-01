@@ -211,4 +211,18 @@ const updateCandidate = [
     res.status(200).json({ message: 'Candidate updated successfully', candidate });
   })
 ];
+
+
+export const getApprovedCandidates = catchAsyncErr(async(req,res) => {
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || 100;
+  const skip = (page-1) * limit;
+  let count = await Candidate.find({status:"approved"}).count();
+  let candiates = await Candidate.find({status : "approved"}).populate('citizenId electionId').skip(skip).limit(limit);
+  res.status(200).json({
+    count,
+    candiates
+  });
+})
+
 export { createCandidate, showAllCandidates, showSpecificCandidate ,getLastCandidateApplied,updateCandidate};

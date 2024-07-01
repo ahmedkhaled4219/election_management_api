@@ -10,6 +10,7 @@ const citizenRouter=express.Router();
 
 citizenRouter.post('/signup', upload.single('image'),citizenController.signUp);
 citizenRouter.post('/newAdmin',isAuthenticated,allowedTo("admin") ,upload.single('image'),citizenController.addAdmin);
+citizenRouter.get('/blocked',citizenController.getBlockedCitizens);
 citizenRouter.post('/signin',citizenController.signin);
 citizenRouter.get('/application-status',isAuthenticated,citizenController.getApplicationStatus);
 citizenRouter.get("/confirmationOfEmail/:token",citizenController.confirmationOfEmail);
