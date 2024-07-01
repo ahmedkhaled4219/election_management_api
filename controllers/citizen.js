@@ -195,14 +195,13 @@ const updateCitizenStatus = catchAsyncErr(async (req, res) => {
 });
 
 const showAllCitizens = catchAsyncErr(async (req, res) => {
-  const { page, limit } = req.query;
-  const paginationResults = await paginate(Citizen, page, limit);
+  const { page, limit, status } = req.query;
+  const paginationResults = await paginate(Citizen, { status }, page, limit);
+  res.status(200).json({
+    message: `Citizens with status '${status}' retrieved successfully`,
+    paginationResults,
+  });
 
-  const count = await Citizen.countDocuments();
-
-  res
-    .status(200)
-    .json({ message: "All Citizens showd successfully", paginationResults, count });
 });
 
 const addAdmin = catchAsyncErr(async (req, res) => {
