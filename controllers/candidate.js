@@ -161,7 +161,7 @@ const showSpecificCandidate = catchAsyncErr(async (req, res) => {
 
 const showAllCandidates = catchAsyncErr(async (req, res) => {
   const { page, limit, status } = req.query;
-  const paginationResults = await paginate(Candidate, { status }, page, limit);
+  const paginationResults = await paginate(Candidate, { status }, page, 5);
   res.status(200).json({
     message: `Candidates with status '${status}' retrieved successfully`,
     paginationResults,

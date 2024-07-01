@@ -110,12 +110,102 @@ const confirmationOfEmail = catchAsyncErr(async (req, res) => {
         { email: decoded.email },
         { emailConfirmation: true }
       );
-      res.json({ message: "account confirmed successfully" });
+
+      const htmlContent = `
+        <html>
+          <head>
+            <title>Account Confirmation</title>
+            <style>
+              body {
+                background-color: #f4fbf9;
+                color: #585858;
+                text-align: center;
+                padding: 50px;
+              }
+              .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+              }
+              h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+              }
+              p {
+                font-size: 18px;
+                margin-bottom: 30px;
+              }
+              .button {
+                display: inline-block;
+                padding: 10px 20px;
+                background-color: #20da9c;
+                color: #fff;
+                border-radius: 8px;
+                text-decoration: none;
+                font-size: 16px;
+              }
+              .button:hover {
+                background-color: #17b887;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Account Confirmed</h1>
+              <p>Your account has been successfully confirmed.</p>
+              <a href="http://localhost:4200/login" class="button">Go to Login</a>
+            </div>
+          </body>
+        </html>
+      `;
+
+      res.send(htmlContent);
     } else {
-      res.json(err);
+      res.status(400).send(`
+        <html>
+          <head>
+            <title>Error</title>
+            <style>
+              body {
+                background-color: #f4fbf9;
+                color: #585858;
+                text-align: center;
+                padding: 50px;
+              }
+              .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+              }
+              h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+                color: #ff4d4f;
+              }
+              p {
+                font-size: 18px;
+                margin-bottom: 30px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Invalid or Expired Token</h1>
+              <p>The link you used is invalid or has expired. Please try again.</p>
+            </div>
+          </body>
+        </html>
+      `);
     }
   });
 });
+
 
 
 export const forgotPassword = async (req, res) => {
@@ -196,7 +286,11 @@ const updateCitizenStatus = catchAsyncErr(async (req, res) => {
 
 const showAllCitizens = catchAsyncErr(async (req, res) => {
   const { page, limit, status } = req.query;
-  const paginationResults = await paginate(Citizen, { status }, page, limit);
+
+  const paginationResults = await paginate(Citizen,   {
+    status:status,
+    role: 'notAdmin'
+  }, page, 5);
   res.status(200).json({
     message: `Citizens with status '${status}' retrieved successfully`,
     paginationResults,

@@ -3,9 +3,20 @@ export const paginate = async (model, query, page, limit) => {
         const pageNumber = parseInt(page, 10) || 1;
         const pageSize = parseInt(limit, 10) || 50;
         const skip = (pageNumber - 1) * pageSize;
-        const filter = {
+        let filter
+        if(query?.status){
+             filter = {
             status: query.status, 
-        };
+        }
+        }
+        else{
+            filter ={}
+        }
+        if(query?.role){
+            filter.role = { $in: ['citizen', 'candidate'] };
+        }
+       
+        console.log(filter)
         const total = await model.countDocuments(filter);
         const results = await model.find(filter).skip(skip).limit(pageSize);
 
