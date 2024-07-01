@@ -334,7 +334,10 @@ export const getApplicationStatus = catchAsyncErr(async (req, res) => {
   if (!citizen) {
     return res.status(404).json({ message: 'Citizen not found.' });
   }
-
+  console.log(citizen.status);
+  if (citizen.status=="blocked") {
+    return res.status(403).json({ message: 'Your account is blocked.' });
+  }
   const applicationStatus = citizen.applicationStatus || [];
   const sortedStatus = applicationStatus.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
