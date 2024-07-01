@@ -15,7 +15,7 @@ import { isAuthenticated } from "../middlewares/authentication.js";
 const router = express.Router();
 
 router.post("/",isAuthenticated,allowedTo('admin'), createElection);
-router.get("/",isAuthenticated, getElections);
+router.get("/", getElections);
 router.get("/last-election",isAuthenticated,getLastElection)
 router.get("/:id", getElectionById);
 router.get('/candidate/:id', getCandidateElections);
